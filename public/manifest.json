@@ -1,0 +1,18 @@
+{
+  "short_name": "VIBR",
+  "name": "VIBR — Africa Builds Different",
+  "description": "The platform where African builders get seen. Drop projects, find co-founders, get hired, and connect with investors.",
+  "icons": [
+    { "src": "favicon.ico",    "sizes": "64x64",    "type": "image/x-icon" },
+    { "src": "logo192.png",    "sizes": "192x192",  "type": "image/png" },
+    { "src": "logo512.png",    "sizes": "512x512",  "type": "image/png" }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#D92B2B",
+  "background_color": "#0A0A0A",
+  "orientation": "portrait-primary",
+  "categories": ["social", "developer tools", "productivity"],
+  "screenshots": [],
+  "related_applications": []
+}
