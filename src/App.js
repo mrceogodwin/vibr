@@ -60,7 +60,7 @@ const CSS = `
   --r2:#FF4444;--g2:#FFB800;--gr2:#22A050;--text:#F0EDE4;--muted:#666;
   --fd:'Bebas Neue',sans-serif;--fm:'Space Mono',monospace;--fb:'DM Sans',sans-serif;
 }
-body{background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;}
+html,body,#root{max-width:100%;overflow-x:hidden;}body{background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;}
 input,textarea,select,button{font-family:var(--fb);}
 button{cursor:pointer;}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--red);}
@@ -87,6 +87,31 @@ button{cursor:pointer;}
   .vibr-mobile-hide{display:none!important;}
   .vibr-pad{padding:16px!important;}
   .vibr-hero{font-size:clamp(32px,9vw,52px)!important;}
+  html,body,#root{max-width:100%!important;overflow-x:hidden!important;}
+  .vibr-land-nav{padding:0 14px!important;height:auto!important;min-height:56px;gap:8px!important;}
+  .vibr-land-links{display:none!important;}
+  .vibr-land-nav-actions{gap:6px!important;}
+  .vibr-land-nav-actions button{padding:7px 10px!important;}
+  .vibr-land-hero{grid-template-columns:1fr!important;min-height:0!important;}
+  .vibr-land-copy{padding:28px 16px 22px!important;border-right:none!important;border-bottom:3px solid #0A0A0A;}
+  .vibr-land-title{font-size:58px!important;letter-spacing:-1px!important;}
+  .vibr-land-stats{flex-wrap:wrap!important;gap:14px 22px!important;}
+  .vibr-land-preview{padding:18px 16px!important;}
+  .vibr-land-3{grid-template-columns:1fr!important;}
+  .vibr-land-3 > div{border-right:none!important;border-bottom:3px solid #0A0A0A;padding:28px 16px!important;}
+  .vibr-land-head{flex-direction:column!important;align-items:flex-start!important;gap:8px!important;padding:20px 16px!important;}
+  .vibr-land-head-title{font-size:32px!important;letter-spacing:1px!important;}
+  .vibr-land-chapters{grid-template-columns:1fr!important;}
+  .vibr-land-chapters > div{border-right:none!important;border-bottom:3px solid #0A0A0A;padding:22px 16px!important;}
+  .vibr-land-ranks{padding:36px 16px!important;}
+  .vibr-land-rank-title{font-size:40px!important;letter-spacing:1px!important;}
+  .vibr-land-rankgrid{grid-template-columns:1fr 1fr!important;}
+  .vibr-land-split{grid-template-columns:1fr!important;}
+  .vibr-land-split > div{padding:32px 16px!important;border-right:none!important;}
+  .vibr-land-actions{flex-wrap:wrap!important;}
+  .vibr-land-cta{padding:48px 16px!important;}
+  .vibr-land-cta-title{font-size:42px!important;}
+  .vibr-auth-grid > div:last-child{padding:28px 16px!important;}
 }
 @media(min-width:769px) and (max-width:1024px){
   .vibr-grid-3{grid-template-columns:repeat(2,1fr)!important;}
@@ -550,38 +575,38 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
 // ── LANDING ───────────────────────────────────────────────────────────────────
 function LandingPage({navigate}){
   return (
-    <div style={{minHeight:"100vh",background:"var(--white)",color:"var(--bg)"}}>
+    <div className="vibr-land" style={{minHeight:"100vh",background:"var(--white)",color:"var(--bg)",overflowX:"hidden"}}>
       <div style={{background:"#0A0A0A",padding:"8px 0",overflow:"hidden",fontFamily:"var(--fm)",fontSize:11,letterSpacing:2,borderBottom:"3px solid #0A0A0A"}}>
         <div style={{display:"flex",width:"max-content",animation:"marquee 18s linear infinite"}}>
           {["VIBR","◆ WHERE AFRICA BUILDS","◆ DROP. BUILD. VIBE.","◆ 54 COUNTRIES. ONE HUB.","◆ AFRICA BUILDS DIFFERENT","◆ JOIN THE MOVEMENT","VIBR","◆ WHERE AFRICA BUILDS","◆ DROP. BUILD. VIBE.","◆ 54 COUNTRIES. ONE HUB.","◆ AFRICA BUILDS DIFFERENT","◆ JOIN THE MOVEMENT"].map((t,i)=><span key={i} style={{padding:"0 28px",color:t.startsWith("◆")?"var(--red)":"var(--gold)"}}>{t}</span>)}
         </div>
       </div>
-      <nav style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 42px",height:62,borderBottom:"3px solid #0A0A0A",background:"var(--white)",position:"sticky",top:0,zIndex:50}}>
+      <nav className="vibr-land-nav" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 42px",height:62,borderBottom:"3px solid #0A0A0A",background:"var(--white)",position:"sticky",top:0,zIndex:50}}>
         <Logo size={30}/>
-        <div style={{display:"flex",gap:30,fontFamily:"var(--fm)",fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>
+        <div className="vibr-land-links" style={{display:"flex",gap:30,fontFamily:"var(--fm)",fontSize:10,letterSpacing:2,textTransform:"uppercase"}}>
           {[["Feed","feed"],["Collabs","collabs"],["Bounties","bounties"],["Hackathons","hackathons"],["Community","community"],["Leaderboard","leaderboard"]].map(([l,p])=><span key={l} onClick={()=>navigate(p)} style={{cursor:"pointer",color:"#333",transition:"color .2s"}} onMouseEnter={e=>e.target.style.color="var(--red)"} onMouseLeave={e=>e.target.style.color="#333"}>{l}</span>)}
         </div>
-        <div style={{display:"flex",gap:9}}>
+        <div className="vibr-land-nav-actions" style={{display:"flex",gap:9}}>
           <button onClick={()=>navigate("account-login")} style={{background:"transparent",border:"2px solid #0A0A0A",padding:"7px 16px",fontFamily:"var(--fm)",fontSize:10,letterSpacing:2,textTransform:"uppercase",cursor:"pointer"}}>Log In</button>
           <button onClick={()=>navigate("account-signup")} style={{background:"#0A0A0A",color:"var(--gold)",border:"2px solid #0A0A0A",padding:"7px 16px",fontFamily:"var(--fm)",fontSize:10,letterSpacing:2,textTransform:"uppercase",cursor:"pointer"}}>Join VIBR</button>
         </div>
       </nav>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",minHeight:"calc(100vh - 108px)",borderBottom:"3px solid #0A0A0A"}}>
-        <div style={{padding:"56px 48px",borderRight:"3px solid #0A0A0A",display:"flex",flexDirection:"column",justifyContent:"space-between"}}>
+      <div className="vibr-land-hero" style={{display:"grid",gridTemplateColumns:"1fr 1fr",minHeight:"calc(100vh - 108px)",borderBottom:"3px solid #0A0A0A"}}>
+        <div className="vibr-land-copy" style={{padding:"56px 48px",borderRight:"3px solid #0A0A0A",display:"flex",flexDirection:"column",justifyContent:"space-between"}}>
           <div>
             <div className="fu" style={{display:"inline-flex",alignItems:"center",gap:7,background:"var(--green)",color:"#fff",padding:"5px 13px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,textTransform:"uppercase",marginBottom:20}}><span style={{color:"var(--gold)",fontSize:7}}>●</span>Africa's Builder Movement — Est. 2025</div>
-            <div className="fu1" style={{fontFamily:"var(--fd)",fontSize:"clamp(64px,9.5vw,130px)",lineHeight:.88,letterSpacing:-2,color:"#0A0A0A"}}>DROP.<br/><span style={{color:"var(--gold)",WebkitTextStroke:"2px #0A0A0A"}}>BUILD.</span><br/><span style={{color:"var(--red)"}}>VIBE.</span></div>
+            <div className="fu1 vibr-land-title" style={{fontFamily:"var(--fd)",fontSize:"clamp(64px,9.5vw,130px)",lineHeight:.88,letterSpacing:-2,color:"#0A0A0A"}}>DROP.<br/><span style={{color:"var(--gold)",WebkitTextStroke:"2px #0A0A0A"}}>BUILD.</span><br/><span style={{color:"var(--red)"}}>VIBE.</span></div>
             <p className="fu2" style={{fontSize:15,fontWeight:500,lineHeight:1.6,color:"#444",maxWidth:400,marginTop:20}}>The <strong style={{color:"#0A0A0A"}}>first platform</strong> built for African Gen Z vibe coders to <strong style={{color:"#0A0A0A"}}>showcase, collab, and get seen</strong> by the world.</p>
             <div className="fu3" style={{display:"flex",gap:11,marginTop:32,flexWrap:"wrap"}}>
               <button onClick={()=>navigate("account-signup")} style={{background:"var(--red)",color:"#fff",border:"2.5px solid #0A0A0A",padding:"12px 30px",fontFamily:"var(--fd)",fontSize:18,letterSpacing:3,cursor:"pointer",transition:"all .15s"}} onMouseEnter={e=>{e.target.style.transform="translate(-3px,-3px)";e.target.style.boxShadow="5px 5px 0 #0A0A0A";}} onMouseLeave={e=>{e.target.style.transform="none";e.target.style.boxShadow="none";}}>Join VIBR →</button>
               <button onClick={()=>navigate("feed")} style={{background:"transparent",color:"#0A0A0A",border:"2.5px solid #0A0A0A",padding:"12px 30px",fontFamily:"var(--fd)",fontSize:18,letterSpacing:3,cursor:"pointer",transition:"all .15s"}} onMouseEnter={e=>{e.target.style.background="var(--gold)";e.target.style.transform="translate(-3px,-3px)";e.target.style.boxShadow="5px 5px 0 #0A0A0A";}} onMouseLeave={e=>{e.target.style.background="transparent";e.target.style.transform="none";e.target.style.boxShadow="none";}}>See the Feed</button>
             </div>
           </div>
-          <div style={{display:"flex",gap:28,paddingTop:28,borderTop:"2px solid #E0DDD4"}}>
+          <div className="vibr-land-stats" style={{display:"flex",gap:28,paddingTop:28,borderTop:"2px solid #E0DDD4"}}>
             {[["12K+","Builders"],["54","Countries"],["3K+","Projects"],["500+","Admins"]].map(([n,l])=><div key={l}><div style={{fontFamily:"var(--fd)",fontSize:32,lineHeight:1,color:"#0A0A0A"}}>{n}</div><div style={{fontFamily:"var(--fm)",fontSize:9,color:"#888",letterSpacing:2,textTransform:"uppercase",marginTop:2}}>{l}</div></div>)}
           </div>
         </div>
-        <div style={{background:"#0A0A0A",padding:"32px",display:"flex",flexDirection:"column",gap:12,position:"relative",overflow:"hidden"}}>
+        <div className="vibr-land-preview" style={{background:"#0A0A0A",padding:"32px",display:"flex",flexDirection:"column",gap:12,position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",top:0,right:0,width:44,height:"100%",display:"flex",flexDirection:"column"}}><div style={{flex:1,background:"var(--red)"}}/><div style={{flex:1,background:"var(--gold)"}}/><div style={{flex:1,background:"var(--green)"}}/></div>
           {FEED_POSTS.slice(0,3).map((p,i)=><div key={p.id} onClick={()=>navigate("feed")} style={{background:"#161616",border:"1.5px solid #252525",padding:"15px",transition:"border-color .2s,transform .2s",cursor:"pointer",animation:`fadeUp .6s ${i*.14}s ease both`}} onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--gold)";e.currentTarget.style.transform="translateX(-4px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="#252525";e.currentTarget.style.transform="none";}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:7}}><Av name={p.av} color={p.avc} size={28}/><div><div style={{color:"var(--white)",fontWeight:700,fontSize:12}}>{p.name}</div><div style={{color:"#666",fontSize:9,fontFamily:"var(--fm)"}}>{p.loc}</div></div><div style={{marginLeft:"auto",fontFamily:"var(--fm)",fontSize:10,color:"var(--gold)"}}>▲{p.votes}</div></div>
@@ -591,7 +616,7 @@ function LandingPage({navigate}){
           <button onClick={()=>navigate("feed")} style={{background:"transparent",border:"2px solid #333",color:"#666",padding:"10px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,textTransform:"uppercase",cursor:"pointer",transition:"all .2s"}} onMouseEnter={e=>{e.target.style.borderColor="var(--gold)";e.target.style.color="var(--gold)";}} onMouseLeave={e=>{e.target.style.borderColor="#333";e.target.style.color="#666";}}>See all drops → ({FEED_POSTS.length} live)</button>
         </div>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",borderBottom:"3px solid #0A0A0A"}}>
+      <div className="vibr-land-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",borderBottom:"3px solid #0A0A0A"}}>
         {[["🔥","Drop Your Build","Post projects, get feedback from African builders who understand your market.","feed"],["🤝","Find Your Crew","Match with designers, devs, and co-founders across 54 African countries.","collabs"],["🌍","Get Seen Globally","Investors worldwide watch VIBR for the next wave of African tech talent.","leaderboard"]].map(([icon,title,desc,page],i)=><div key={i} onClick={()=>navigate(page)} style={{padding:"48px 42px",borderRight:i<2?"3px solid #0A0A0A":"none",transition:"background .3s",cursor:"pointer"}} onMouseEnter={e=>{e.currentTarget.style.background="#0A0A0A";e.currentTarget.querySelectorAll(".ft").forEach(el=>el.style.color="var(--white)");}} onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.querySelectorAll(".ft").forEach(el=>el.style.color="");}}>
           <div style={{fontSize:34,marginBottom:14}}>{icon}</div>
           <div className="ft" style={{fontFamily:"var(--fd)",fontSize:28,letterSpacing:2,color:"#0A0A0A",marginBottom:10,transition:"color .3s"}}>{title}</div>
@@ -600,11 +625,11 @@ function LandingPage({navigate}){
         </div>)}
       </div>
       <div style={{borderBottom:"3px solid #0A0A0A"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"24px 42px",borderBottom:"3px solid #0A0A0A"}}>
-          <div style={{fontFamily:"var(--fd)",fontSize:38,letterSpacing:3}}>COUNTRY <span style={{color:"var(--red)"}}>CHAPTERS</span></div>
+        <div className="vibr-land-head" style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"24px 42px",borderBottom:"3px solid #0A0A0A"}}>
+          <div className="vibr-land-head-title" style={{fontFamily:"var(--fd)",fontSize:38,letterSpacing:3}}>COUNTRY <span style={{color:"var(--red)"}}>CHAPTERS</span></div>
           <button onClick={()=>navigate("community")} style={{fontFamily:"var(--fm)",fontSize:10,letterSpacing:2,textTransform:"uppercase",background:"transparent",border:"none",cursor:"pointer",color:"#0A0A0A",borderBottom:"2px solid var(--red)",paddingBottom:2}}>All 54 chapters →</button>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)"}}>
+        <div className="vibr-land-chapters" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)"}}>
           {CHAPTERS.slice(0,4).map((ch,i)=><div key={ch.name} onClick={()=>navigate("community")} style={{padding:"30px 26px",borderRight:i<3?"3px solid #0A0A0A":"none",transition:"background .25s",cursor:"pointer"}} onMouseEnter={e=>{e.currentTarget.style.background="#0A0A0A";e.currentTarget.querySelectorAll(".cht").forEach(el=>el.style.color="var(--white)");}} onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.querySelectorAll(".cht").forEach(el=>el.style.color="");}}>
             <div style={{fontSize:36,marginBottom:12}}>{ch.flag}</div>
             <div className="cht" style={{fontFamily:"var(--fd)",fontSize:22,letterSpacing:2,marginBottom:3,transition:"color .25s"}}>{ch.name}</div>
@@ -613,12 +638,12 @@ function LandingPage({navigate}){
           </div>)}
         </div>
       </div>
-      <div style={{background:"#0A0A0A",padding:"64px 42px",borderBottom:"3px solid #0A0A0A"}}>
+      <div className="vibr-land-ranks" style={{background:"#0A0A0A",padding:"64px 42px",borderBottom:"3px solid #0A0A0A"}}>
         <div style={{textAlign:"center",marginBottom:44}}>
-          <div style={{fontFamily:"var(--fd)",fontSize:60,color:"var(--white)",letterSpacing:4,lineHeight:1}}>THE VIBE <span style={{color:"var(--gold)"}}>RANKS</span></div>
+          <div className="vibr-land-rank-title" style={{fontFamily:"var(--fd)",fontSize:60,color:"var(--white)",letterSpacing:4,lineHeight:1}}>THE VIBE <span style={{color:"var(--gold)"}}>RANKS</span></div>
           <div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"#666",marginTop:6}}>EVERY DROP EARNS POINTS. CLIMB. GET RECOGNIZED.</div>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12}}>
+        <div className="vibr-land-rankgrid" style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12}}>
           {[["🌱","Seedling","0–499 pts","Access feed and community"],["⚡","Builder","500–1,999 pts","Unlock bounties and collab board"],["🔥","Vibe Lord","2,000–4,999 pts","Featured on homepage"],["👑","Legend","5,000–9,999 pts","Mentorship and speaking slots"],["🌍","Icon","10,000+ pts","Pan-African hall of fame"]].map(([emoji,name,pts,perk],i)=><div key={name} onClick={()=>navigate("leaderboard")} style={{border:`2px solid ${i===4?"var(--gold)":"#2A2A2A"}`,padding:"22px 16px",textAlign:"center",transition:"all .2s",cursor:"pointer"}} onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--gold)";e.currentTarget.style.transform="translateY(-7px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor=i===4?"var(--gold)":"#2A2A2A";e.currentTarget.style.transform="none";}}>
             <div style={{fontSize:34,marginBottom:9}}>{emoji}</div>
             <div style={{fontFamily:"var(--fd)",fontSize:18,color:"var(--white)",letterSpacing:2,marginBottom:4}}>{name}</div>
@@ -631,7 +656,7 @@ function LandingPage({navigate}){
         </div>
       </div>
       {/* For Investors + For Companies */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",borderBottom:"3px solid #0A0A0A"}}>
+      <div className="vibr-land-split" style={{display:"grid",gridTemplateColumns:"1fr 1fr",borderBottom:"3px solid #0A0A0A"}}>
         <div style={{padding:"52px 46px",borderRight:"3px solid #0A0A0A",background:"#0A0A0A",position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,transparent,var(--gold),transparent)"}}/>
           <div style={{fontFamily:"var(--fm)",fontSize:10,letterSpacing:3,color:"var(--gold)",marginBottom:12,textTransform:"uppercase"}}>💼 For Investors</div>
@@ -640,7 +665,7 @@ function LandingPage({navigate}){
           <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
             {[["📊","Deal flow filtered by sector and stage"],["👤","Direct access to top builders"],["💬","Post bounties and sponsor hackathons"],["🔒","AI-verified investor accounts only"]].map(([i,t])=><div key={t} style={{display:"flex",gap:9,alignItems:"center",fontSize:12,color:"#777"}}><span>{i}</span>{t}</div>)}
           </div>
-          <div style={{display:"flex",gap:9}}>
+          <div className="vibr-land-actions" style={{display:"flex",gap:9}}>
             <button onClick={()=>navigate("investor-signup")} style={{background:"var(--gold)",color:"#000",border:"2px solid var(--gold)",padding:"10px 24px",fontFamily:"var(--fd)",fontSize:16,letterSpacing:3,cursor:"pointer",transition:"all .15s"}} onMouseEnter={e=>{e.target.style.background="transparent";e.target.style.color="var(--gold)";}} onMouseLeave={e=>{e.target.style.background="var(--gold)";e.target.style.color="#000";}}>Apply for Access →</button>
             <button onClick={()=>navigate("investor-login")} style={{background:"transparent",color:"#555",border:"2px solid #333",padding:"10px 18px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,cursor:"pointer",textTransform:"uppercase",transition:"all .2s"}} onMouseEnter={e=>{e.target.style.borderColor="var(--gold)";e.target.style.color="var(--gold)";}} onMouseLeave={e=>{e.target.style.borderColor="#333";e.target.style.color="#555";}}>Log In</button>
           </div>
@@ -653,15 +678,15 @@ function LandingPage({navigate}){
           <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
             {[["💰","Post bounties — pay on completion only"],["👤","Search by stack, country, and rank"],["⚡","Sponsor hackathons for brand visibility"],["📢","Company profile builders apply to directly"]].map(([i,t])=><div key={t} style={{display:"flex",gap:9,alignItems:"center",fontSize:12,color:"#555"}}><span>{i}</span>{t}</div>)}
           </div>
-          <div style={{display:"flex",gap:9}}>
+          <div className="vibr-land-actions" style={{display:"flex",gap:9}}>
             <button onClick={()=>navigate("company-signup")} style={{background:"var(--green)",color:"#fff",border:"2px solid #0A0A0A",padding:"10px 24px",fontFamily:"var(--fd)",fontSize:16,letterSpacing:3,cursor:"pointer",transition:"all .15s"}} onMouseEnter={e=>{e.target.style.transform="translate(-2px,-2px)";e.target.style.boxShadow="4px 4px 0 #0A0A0A";}} onMouseLeave={e=>{e.target.style.transform="none";e.target.style.boxShadow="none";}}>Create Account →</button>
             <button onClick={()=>navigate("company-login")} style={{background:"transparent",color:"#777",border:"2px solid #ccc",padding:"10px 18px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,cursor:"pointer",textTransform:"uppercase",transition:"all .2s"}} onMouseEnter={e=>{e.target.style.borderColor="var(--green)";e.target.style.color="var(--green)";}} onMouseLeave={e=>{e.target.style.borderColor="#ccc";e.target.style.color="#777";}}>Log In</button>
           </div>
         </div>
       </div>
-      <div style={{background:"var(--red)",padding:"84px 42px",textAlign:"center",position:"relative",overflow:"hidden"}}>
+      <div className="vibr-land-cta" style={{background:"var(--red)",padding:"84px 42px",textAlign:"center",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",fontFamily:"var(--fd)",fontSize:240,color:"rgba(255,255,255,.04)",top:"50%",left:"50%",transform:"translate(-50%,-50%)",letterSpacing:-10,pointerEvents:"none",whiteSpace:"nowrap"}}>VIBR</div>
-        <div style={{fontFamily:"var(--fd)",fontSize:66,color:"#fff",lineHeight:.9,marginBottom:18,position:"relative"}}>AFRICA BUILDS DIFFERENT.</div>
+        <div className="vibr-land-cta-title" style={{fontFamily:"var(--fd)",fontSize:66,color:"#fff",lineHeight:.9,marginBottom:18,position:"relative"}}>AFRICA BUILDS DIFFERENT.</div>
         <p style={{color:"rgba(255,255,255,.85)",fontSize:15,maxWidth:400,margin:"0 auto 32px",lineHeight:1.7,position:"relative"}}>VIBR is for builders who don't wait for permission.</p>
         <button onClick={()=>navigate("account-signup")} style={{background:"#0A0A0A",color:"var(--gold)",border:"2.5px solid #0A0A0A",padding:"14px 40px",fontFamily:"var(--fd)",fontSize:20,letterSpacing:4,cursor:"pointer",position:"relative",transition:"all .15s"}} onMouseEnter={e=>{e.target.style.background="var(--gold)";e.target.style.color="#000";}} onMouseLeave={e=>{e.target.style.background="#0A0A0A";e.target.style.color="var(--gold)";}}>GET IN NOW →</button>
       </div>
@@ -687,7 +712,7 @@ function AccountTypePage({mode="signup",navigate}){
         <div style={{fontFamily:"var(--fd)",fontSize:"clamp(26px,5vw,44px)",letterSpacing:2,lineHeight:1,marginBottom:7}}>{mode==="signup"?"JOIN AS...":"WELCOME BACK"}</div>
         <div style={{fontFamily:"var(--fm)",fontSize:9,color:"var(--muted)",letterSpacing:3}}>{mode==="signup"?"SELECT YOUR ACCOUNT TYPE TO GET STARTED":"SELECT YOUR ACCOUNT TYPE TO LOG IN"}</div>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,maxWidth:820,width:"100%"}}>
+      <div className="vibr-grid-3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:14,maxWidth:820,width:"100%"}}>
         {types.map((t,i)=>(
           <div key={t.id} className="fu" style={{animationDelay:`${.08+i*.08}s`,cursor:"pointer",position:"relative"}}
             onClick={()=>navigate(mode==="signup"?`${t.id}-signup`:t.id==="investor"?"investor-login":t.id==="company"?"company-login":`${t.id}-login`)}
@@ -743,8 +768,8 @@ function AuthPage({mode="login",navigate,onAuth}){
   };
 
   return (
-    <div style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr"}}>
-      <div style={{background:"#0A0A0A",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"48px 46px",position:"relative",overflow:"hidden"}}>
+    <div className="vibr-auth-grid" style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr"}}>
+      <div className="vibr-auth-panel" style={{background:"#0A0A0A",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"48px 46px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:0,left:0,width:"100%",height:5,display:"flex"}}><div style={{flex:1,background:"var(--red)"}}/><div style={{flex:1,background:"var(--gold)"}}/><div style={{flex:1,background:"var(--green)"}}/></div>
         <div style={{fontFamily:"var(--fd)",fontSize:34,letterSpacing:4,display:"flex",alignItems:"center",cursor:"pointer"}} onClick={()=>navigate("landing")}><span style={{color:"var(--white)"}}>V</span><span style={{color:"var(--red)"}}>I</span><span style={{color:"var(--white)"}}>B</span><span style={{color:"var(--gold)"}}>R</span><span style={{width:5,height:5,background:"var(--gr2)",borderRadius:"50%",marginLeft:2,marginBottom:2,display:"inline-block"}}/></div>
         <div>
@@ -903,8 +928,8 @@ function CompanyLoginPage({navigate,onAuth}){
     finally { setLoading(false); }
   };
   return (
-    <div style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr"}}>
-      <div style={{background:"#0A0A0A",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"48px 46px",position:"relative",overflow:"hidden"}}>
+    <div className="vibr-auth-grid" style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr"}}>
+      <div className="vibr-auth-panel" style={{background:"#0A0A0A",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"48px 46px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,transparent,var(--gr2),transparent)"}}/>
         <div style={{cursor:"pointer"}} onClick={()=>navigate("landing")}><div style={{fontFamily:"var(--fd)",fontSize:34,letterSpacing:4,display:"flex",alignItems:"center"}}><span style={{color:"var(--white)"}}>V</span><span style={{color:"var(--red)"}}>I</span><span style={{color:"var(--white)"}}>B</span><span style={{color:"var(--gold)"}}>R</span><span style={{width:5,height:5,background:"var(--gr2)",borderRadius:"50%",marginLeft:2,marginBottom:2,display:"inline-block"}}/></div></div>
         <div>
@@ -1079,8 +1104,8 @@ function InvestorLoginPage({navigate,onAuth}){
     finally { setLoading(false); }
   };
   return (
-    <div style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr"}}>
-      <div style={{background:"#0A0A0A",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"48px 46px",position:"relative",overflow:"hidden"}}>
+    <div className="vibr-auth-grid" style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr"}}>
+      <div className="vibr-auth-panel" style={{background:"#0A0A0A",display:"flex",flexDirection:"column",justifyContent:"space-between",padding:"48px 46px",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,transparent,var(--gold),transparent)"}}/>
         <div style={{cursor:"pointer"}} onClick={()=>navigate("landing")}><div style={{fontFamily:"var(--fd)",fontSize:34,letterSpacing:4,display:"flex",alignItems:"center"}}><span style={{color:"var(--white)"}}>V</span><span style={{color:"var(--red)"}}>I</span><span style={{color:"var(--white)"}}>B</span><span style={{color:"var(--gold)"}}>R</span><span style={{width:5,height:5,background:"var(--gr2)",borderRadius:"50%",marginLeft:2,marginBottom:2,display:"inline-block"}}/></div></div>
         <div>
