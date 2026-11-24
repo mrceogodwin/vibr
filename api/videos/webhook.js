@@ -1,8 +1,6 @@
 const crypto = require("crypto");
 const { getAdminClient } = require("../../lib/video-server");
 
-module.exports.config = { api: { bodyParser: false } };
-
 async function readRawBody(req) {
   const chunks = [];
   for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -67,3 +65,5 @@ module.exports = async function handler(req, res) {
     return res.status(500).send("Webhook processing failed");
   }
 };
+
+module.exports.config = { api: { bodyParser: false } };
