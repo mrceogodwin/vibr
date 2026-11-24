@@ -2,13 +2,14 @@
   "name": "vibr-africa",
   "version": "1.0.0",
   "private": true,
-  "description": "VIBR \u2014 Africa Builds Different. The platform for African builders.",
+  "description": "VIBR — Africa Builds Different. The platform for African builders.",
   "homepage": "https://vibr.africa",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "tus-js-client": "^4.3.1"
   },
   "scripts": {
     "start": "react-scripts start",
