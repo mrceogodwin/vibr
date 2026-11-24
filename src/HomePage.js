@@ -508,6 +508,7 @@ const CSS = `
   .vh-brand-i{color:var(--red)}
   .vh-brand-b{color:var(--gold)}
   .vh-brand-r{color:var(--green)}
+  .vh-brand i{color:var(--green)}
   .vh-nav-links{justify-content:center;gap:clamp(16px,2.4vw,40px)}
   .vh-nav-links button{font-family:Impact,"Arial Narrow",Haettenschweiler,sans-serif;font-size:13px;letter-spacing:2px}
   .vh-nav-actions{gap:12px}
