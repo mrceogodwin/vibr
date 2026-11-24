@@ -214,13 +214,41 @@ export default function LandingPage({ navigate, getPosts }) {
       </section>
 
       <footer className="vh-footer">
+        <div className="vh-footer-spectrum" aria-hidden="true"><i/><i/><i/></div>
         <div className="vh-footer-main">
-          <div><Brand onClick={() => go("landing")}/><p>Africa's builder network. Drop your work, find your crew and build what comes next.</p></div>
-          <div><b>DISCOVER</b><button onClick={() => go("feed")}>Feed</button><button onClick={() => go("leaderboard")}>Leaderboard</button><button onClick={() => go("community")}>Country chapters</button></div>
-          <div><b>BUILD</b><button onClick={() => go("drop")}>Drop a project</button><button onClick={() => go("collabs")}>Collaborate</button><button onClick={() => go("hackathons")}>Hackathons</button></div>
-          <div><b>OPPORTUNITIES</b><button onClick={() => go("bounties")}>Bounties</button><button onClick={() => go("account-login")}>Log in</button><button onClick={() => go("account-signup")}>Join VIBR</button></div>
+          <div className="vh-footer-brand-col">
+            <Brand onClick={() => go("landing")}/>
+            <span className="vh-footer-kicker">AFRICA'S BUILDER MOVEMENT</span>
+            <p>A home for Africa's builders, creators and problem-solvers. Share what you're making, find your people and build what comes next.</p>
+            <strong className="vh-footer-motto">DROP. <i>BUILD.</i> <b>VIBE.</b></strong>
+          </div>
+          <div className="vh-footer-links">
+            <b>DISCOVER</b>
+            <button onClick={() => go("feed")}>The Feed</button>
+            <button onClick={() => go("leaderboard")}>Vibe Ranks</button>
+            <button onClick={() => go("community")}>Country Chapters</button>
+            <button onClick={() => go("community")}>Community</button>
+          </div>
+          <div className="vh-footer-links">
+            <b>BUILD WITH VIBR</b>
+            <button onClick={() => go("drop")}>Drop Your Build</button>
+            <button onClick={() => go("collabs")}>Find Your Crew</button>
+            <button onClick={() => go("hackathons")}>Hackathons</button>
+            <button onClick={() => go("bounties")}>Bounties</button>
+          </div>
+          <div className="vh-footer-links">
+            <b>GET STARTED</b>
+            <button onClick={() => go("account-signup")}>Create Account</button>
+            <button onClick={() => go("account-login")}>Log In</button>
+            <button onClick={() => go("companies")}>For Companies</button>
+            <button onClick={() => go("leaderboard")}>Meet the Builders</button>
+          </div>
         </div>
-        <div className="vh-footer-bottom"><span>© 2026 VIBR. ALL RIGHTS RESERVED.</span><span>DROP. BUILD. VIBE.</span></div>
+        <div className="vh-footer-bottom">
+          <span>© 2026 VIBR. ALL RIGHTS RESERVED.</span>
+          <span className="vh-footer-unity">54 COUNTRIES <i>◆</i> ONE HUB.</span>
+          <button onClick={() => window.scrollTo({top:0,behavior:"smooth"})}>BACK TO TOP ↑</button>
+        </div>
       </footer>
     </main>
   );
@@ -359,15 +387,24 @@ const CSS = `
 .vh-closing>div{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
 .vh-closing .vh-primary{background:var(--ink);border-color:var(--ink);color:var(--gold)}
 .vh-closing .vh-secondary{border-color:#fff;color:#fff}
-.vh-footer{background:var(--ink);color:#fff;padding:42px clamp(18px,4vw,64px) 18px}
-.vh-footer .vh-brand-v,.vh-footer .vh-brand-b{color:#fff}
-.vh-footer-main{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:28px;padding-bottom:30px;border-bottom:1px solid #393939}
-.vh-footer-main>div:first-child p{max-width:300px;color:#aaa;font-size:12px;line-height:1.7;margin:13px 0 0}
-.vh-footer-main>div:not(:first-child){display:flex;flex-direction:column;align-items:flex-start;gap:9px}
-.vh-footer-main>div>b{font-family:Arial Narrow,Impact,sans-serif;color:var(--gold);font-size:11px;letter-spacing:2px;margin-bottom:4px}
-.vh-footer-main>div>button{padding:0;color:#ddd;text-align:left;font-size:12px}
-.vh-footer-main>div>button:hover{color:var(--gold)}
-.vh-footer-bottom{padding-top:17px;display:flex;justify-content:space-between;gap:12px;color:#a5a5a5;font-family:Arial Narrow,Impact,sans-serif;font-size:9px;letter-spacing:2px}
+.vh-footer{background:radial-gradient(90% 130% at 8% 0%,rgba(22,122,67,.13),transparent 48%),#080a09;color:#fff;padding:0 clamp(18px,4vw,64px) 20px;border-top:2px solid #20231f}
+.vh-footer-spectrum{height:5px;display:grid;grid-template-columns:1fr 1fr 1fr;margin:0 calc(clamp(18px,4vw,64px) * -1) 0}
+.vh-footer-spectrum i:nth-child(1){background:var(--red)}.vh-footer-spectrum i:nth-child(2){background:var(--gold)}.vh-footer-spectrum i:nth-child(3){background:var(--green)}
+.vh-footer .vh-brand{font-size:36px}.vh-footer .vh-brand-v,.vh-footer .vh-brand-b{color:#fff}
+.vh-footer-main{display:grid;grid-template-columns:minmax(240px,1.55fr) repeat(3,minmax(125px,.8fr));gap:clamp(24px,4vw,58px);padding:48px 0 40px;border-bottom:1px solid #343832}
+.vh-footer-brand-col{max-width:380px}
+.vh-footer-kicker{display:block;margin-top:16px;color:#77bd91;font-family:Arial Narrow,Impact,sans-serif;font-size:10px;letter-spacing:2.5px;font-weight:800}
+.vh-footer-brand-col p{max-width:340px;color:#b3b7b0;font-size:13px;line-height:1.8;margin:12px 0 18px}
+.vh-footer-motto{display:block;color:#fff;font-family:Arial Narrow,Impact,sans-serif;font-size:18px;letter-spacing:2.4px}
+.vh-footer-motto i{font-style:normal;color:var(--gold)}.vh-footer-motto b{color:var(--red)}
+.vh-footer-links{display:flex;flex-direction:column;align-items:flex-start;gap:13px;padding-top:5px}
+.vh-footer-links>b{font-family:Arial Narrow,Impact,sans-serif;color:var(--gold);font-size:11px;letter-spacing:2.2px;margin-bottom:5px}
+.vh-footer-links button{padding:0;color:#c7c9c4;text-align:left;font-size:13px;line-height:1.4;transition:color .16s,transform .16s}
+.vh-footer-links button:hover{color:#fff;transform:translateX(3px)}
+.vh-footer-bottom{padding-top:18px;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#888e86;font-family:Arial Narrow,Impact,sans-serif;font-size:10px;letter-spacing:1.8px}
+.vh-footer-unity{color:#d8d8d2}.vh-footer-unity i{font-size:8px;color:var(--red);font-style:normal;margin:0 8px}
+.vh-footer-bottom>button{border:1px solid #4a5049;background:transparent;color:#d8d8d2;padding:9px 12px;font-family:Arial Narrow,Impact,sans-serif;font-size:9px;letter-spacing:1.5px;cursor:pointer}
+.vh-footer-bottom>button:hover{border-color:var(--gold);color:var(--gold)}
 @media(max-width:1100px){
   .vh-nav{grid-template-columns:auto 1fr auto;gap:12px;padding:0 20px}
   .vh-nav-links{gap:12px}.vh-nav-links button{font-size:10px;letter-spacing:1.3px}
@@ -439,10 +476,18 @@ const CSS = `
   .vh-market-panel h2{font-size:49px}
   .vh-closing{padding:58px 18px}
   .vh-closing h2{font-size:clamp(42px,12vw,68px)}
-  .vh-footer{padding:32px 18px 15px}
-  .vh-footer-main{grid-template-columns:1fr 1fr;gap:25px 16px}
-  .vh-footer-main>div:first-child{grid-column:1/-1}
-  .vh-footer-bottom{font-size:8px;letter-spacing:1.2px}
+  .vh-footer{padding:0 18px 16px}
+  .vh-footer-spectrum{margin:0 -18px}
+  .vh-footer-main{grid-template-columns:1fr 1fr;gap:30px 18px;padding:34px 0 28px}
+  .vh-footer-brand-col{grid-column:1/-1;max-width:100%}
+  .vh-footer-brand-col p{max-width:460px}
+  .vh-footer-links{gap:12px}
+  .vh-footer-links>b{font-size:10px;letter-spacing:1.7px}
+  .vh-footer-links button{font-size:12px}
+  .vh-footer-bottom{font-size:8px;letter-spacing:1px;flex-wrap:wrap;justify-content:space-between}
+  .vh-footer-unity{order:3;width:100%;text-align:center;padding-top:4px}
+  .vh-footer-bottom>button{padding:8px 9px;font-size:8px}
+
 }
 @media(max-width:390px){
   .vh-login{display:none}
