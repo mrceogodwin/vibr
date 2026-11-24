@@ -45,6 +45,8 @@ CREATE INDEX IF NOT EXISTS idx_video_assets_author_created
   ON public.video_assets(author_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_video_assets_status_created
   ON public.video_assets(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_video_assets_author_status_created
+  ON public.video_assets(author_id, status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_video_asset_id
   ON public.posts(video_asset_id)
   WHERE video_asset_id IS NOT NULL;
