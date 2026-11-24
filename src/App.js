@@ -75,6 +75,9 @@ button{cursor:pointer;}
 
 @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(100%);}to{opacity:1;transform:none;}}
+@media(max-width:900px){
+  .vibr-sidebar{display:none!important;}
+}
 @media(max-width:768px){
   .vibr-sidebar{display:none!important;}
   .vibr-auth-panel{display:none!important;}
@@ -538,7 +541,7 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
           </button>
         </div>
         {/* Full-width content — no builder sidebar */}
-        <main id="main-content" role="main" style={{flex:1,overflow:"auto"}} aria-label="Main content">{children}</main>
+        <main id="main-content" role="main" style={{flex:1,minWidth:0,overflow:"auto"}} aria-label="Main content">{children}</main>
       </div>
     );
   }
@@ -547,7 +550,7 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
   return (
     <div style={{display:"flex",minHeight:"100vh",background:"var(--bg)"}}>
       {/* Sidebar */}
-      <div style={{width:224,background:"var(--surface)",borderRight:"2px solid var(--border)",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",overflowY:"auto",flexShrink:0}}>
+      <div className="vibr-sidebar" style={{width:224,background:"var(--surface)",borderRight:"2px solid var(--border)",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",overflowY:"auto",flexShrink:0}}>
         <div style={{padding:"18px 18px 12px",borderBottom:"2px solid var(--border)"}}><Logo size={28} onClick={()=>navigate("landing")}/></div>
         <nav role="navigation" aria-label="Main navigation" style={{flex:1,padding:"10px 0"}}>
           {nav.map(([icon,label,page])=>{
