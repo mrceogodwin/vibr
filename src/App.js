@@ -79,6 +79,8 @@ button{cursor:pointer;}
   .vibr-sidebar{display:none!important;}
 }
 @media(max-width:768px){
+  /* Keep iOS Safari from zooming the page when any form control receives focus. */
+  input:not([type="file"]),textarea,select{font-size:16px!important;}
   .vibr-sidebar{display:none!important;}
   .vibr-auth-panel{display:none!important;}
   .vibr-auth-grid{grid-template-columns:1fr!important;}
@@ -2829,7 +2831,7 @@ function SearchPage({navigate,returnTo,userRole,session}){
         <div style={{fontFamily:"var(--fd)",fontSize:32,letterSpacing:2,marginBottom:20}}>SEARCH <span style={{color:"var(--red)"}}>VIBR</span></div>
         <div style={{position:"relative",marginBottom:18}}>
           <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16,color:"var(--muted)"}}>🔍</span>
-          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search projects, builders, bounties, collabs..." autoFocus style={{width:"100%",padding:"14px 14px 14px 44px",background:"var(--surface)",border:"2px solid var(--border)",color:"var(--text)",fontSize:14,outline:"none",fontFamily:"var(--fb)",transition:"border-color .2s",borderRadius:0}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
+          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search projects, builders, bounties, collabs..." autoFocus style={{width:"100%",padding:"14px 14px 14px 44px",background:"var(--surface)",border:"2px solid var(--border)",color:"var(--text)",fontSize:16,outline:"none",fontFamily:"var(--fb)",transition:"border-color .2s",borderRadius:0}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
           {q&&<button onClick={()=>setQ("")} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"transparent",border:"none",color:"var(--muted)",fontSize:20,cursor:"pointer"}}>×</button>}
         </div>
         <div style={{display:"flex",borderBottom:"2px solid var(--border)",marginBottom:22}}>
