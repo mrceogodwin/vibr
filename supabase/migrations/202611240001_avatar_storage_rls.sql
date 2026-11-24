@@ -16,13 +16,18 @@ set
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
--- Public profile photos can be displayed by feed/profile cards.
+-- Upsert needs SELECT as well as INSERT and UPDATE. Restrict metadata reads
+-- to the signed-in owner's own avatar object; public bucket URLs remain publicly readable.
 drop policy if exists "Public can view avatar images" on storage.objects;
-create policy "Public can view avatar images"
+drop policy if exists "Users can read their own avatar metadata" on storage.objects;
+create policy "Users can read their own avatar metadata"
 on storage.objects
 for select
-to public
-using (bucket_id = 'avatars');
+to authenticated
+using (
+  bucket_id = 'avatars'
+  and name like 'avatars/' || auth.uid()::text || '.%'
+);
 
 -- A signed-in user may upload only the file whose name starts with their own user ID.
 drop policy if exists "Users upload their own avatar" on storage.objects;
