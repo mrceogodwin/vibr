@@ -21,25 +21,11 @@ module.exports = async function handler(req, res) {
     if (!mimeType.startsWith("video/")) {
       return res.status(400).json({ error: "The selected file is not a supported video." });
     }
-    if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 3595) {
+    if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 3600) {
       return res.status(400).json({ error: "Videos must be shorter than 60 minutes and have readable duration metadata." });
     }
 
-    // Limit a single account to three active uploads/encodes at a time.
-    // This protects against accidental repeated clicks and basic upload abuse.
-    const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
-    const { count, error: countError } = await admin
-      .from("video_assets")
-      .select("id", { count: "exact", head: true })
-      .eq("author_id", user.id)
-      .in("status", ["uploading", "processing"])
-      .gte("created_at", cutoff);
-    if (countError) throw countError;
-    if ((count || 0) >= 3) {
-      return res.status(429).json({ error: "You already have three videos uploading or processing. Wait for one to finish before starting another." });
-    }
-
-    const maxDurationSeconds = Math.min(3600, Math.ceil(durationSeconds) + 5);
+    const maxDurationSeconds = Math.min(3600, Math.ceil(durationSeconds) + 2);
     const expiry = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString();
     const b64 = value => Buffer.from(String(value), "utf8").toString("base64");
     const uploadMetadata = [
@@ -80,31 +66,29 @@ module.exports = async function handler(req, res) {
     }
 
     const iframeUrl = "https://customer-" + customerCode.replace(/^customer-/, "") + ".cloudflarestream.com/" + uid + "/iframe";
-    const { data: asset, error: insertError } = await admin
-      .from("video_assets")
-      .insert({
-        author_id: user.id,
-        stream_uid: uid,
-        original_filename: fileName,
-        mime_type: mimeType,
-        file_size_bytes: fileSize,
-        duration_seconds: Number(durationSeconds.toFixed(2)),
-        status: "uploading",
-        iframe_url: iframeUrl
-      })
-      .select("id")
-      .single();
+    const { data: assetId, error: insertError } = await admin.rpc("reserve_video_asset", {
+      p_author_id: user.id,
+      p_stream_uid: uid,
+      p_original_filename: fileName,
+      p_mime_type: mimeType,
+      p_file_size_bytes: fileSize,
+      p_duration_seconds: Number(durationSeconds.toFixed(2)),
+      p_iframe_url: iframeUrl
+    });
 
-    if (insertError) {
-      // Avoid leaving an untracked Stream object if the database insert fails.
+    if (insertError || !assetId) {
+      // Avoid leaving an untracked Stream object if the database reservation fails.
       await fetch("https://api.cloudflare.com/client/v4/accounts/" + accountId + "/stream/" + uid, {
         method: "DELETE",
         headers: { Authorization: "Bearer " + apiToken }
       }).catch(() => {});
-      throw insertError;
+      if ((insertError?.message || "").includes("upload_limit_exceeded")) {
+        return res.status(429).json({ error: "You already have three videos uploading or processing. Wait for one to finish before starting another." });
+      }
+      throw insertError || new Error("VIBR could not reserve this video upload.");
     }
 
-    return res.status(201).json({ assetId: asset.id, uid, uploadUrl, iframeUrl });
+    return res.status(201).json({ assetId, uid, uploadUrl, iframeUrl });
   } catch (error) {
     jsonError(res, error);
   }
