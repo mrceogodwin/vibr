@@ -655,6 +655,23 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
           .vibr-main-content [style*="minWidth: 3"],.vibr-main-content [style*="minWidth:3"]{min-width:0!important}
           .vibr-collab-card{grid-template-columns:minmax(0,1fr)!important}
           .vibr-bottom-dock{left:10px!important;right:10px!important;max-width:calc(100vw - 20px)!important}
+          .vibr-profile-page{width:100%!important;max-width:100vw!important;min-width:0!important;overflow-x:clip!important}
+          .vibr-profile-inner{width:100%!important;max-width:820px!important;padding-left:16px!important;padding-right:16px!important;min-width:0!important}
+          .vibr-profile-identity{align-items:flex-start!important;flex-wrap:wrap!important;gap:12px!important;margin-top:-34px!important}
+          .vibr-profile-identity>div:nth-child(2){flex:1 1 calc(100% - 104px)!important;min-width:0!important}
+          .vibr-profile-name-row>div:first-child{font-size:clamp(23px,7vw,30px)!important;letter-spacing:1px!important;overflow-wrap:anywhere}
+          .vibr-profile-actions{width:100%!important;padding:0!important}
+          .vibr-profile-actions button{flex:1 1 auto!important;min-width:0!important}
+          .vibr-profile-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+          .vibr-profile-stats>div{min-width:0!important;padding:13px 6px!important;border-bottom:1px solid var(--border)}
+          .vibr-profile-stats>div:last-child{grid-column:1/-1}
+          .vibr-profile-stats>div>div:first-child{font-size:24px!important}
+          .vibr-profile-stats>div>div:last-child{font-size:7px!important;letter-spacing:1px!important;overflow-wrap:anywhere}
+          .vibr-profile-tabs{scrollbar-width:none!important;gap:0!important}
+          .vibr-profile-tabs::-webkit-scrollbar{display:none}
+          .vibr-profile-tabs button{flex:0 0 auto!important;padding:11px 12px!important;font-size:8px!important;white-space:nowrap!important}
+          .vibr-profile-page p{overflow-wrap:anywhere}
+          .vibr-profile-page>div:last-child{min-width:0!important;max-width:100%!important}
           .vibr-messages-layout{height:calc(100dvh - 88px)!important;min-height:0!important;overflow:hidden!important;display:flex!important}
           .vibr-message-list{width:100%!important;max-width:100%!important;min-width:0!important;flex:1 1 100%!important;border-right:0!important}
           .vibr-message-chat{display:none!important;width:100%!important;max-width:100%!important;min-width:0!important;flex:1 1 100%!important;height:100%;overflow:hidden}
@@ -2499,12 +2516,12 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile}){
   ];
   return (
     <AppShell navigate={navigate} activePage="profile" returnTo={returnTo} userRole={userRole}>
-      <div style={{minHeight:"100vh"}}>
+      <div className="vibr-profile-page" style={{minHeight:"100vh",width:"100%",maxWidth:"100%",minWidth:0,overflowX:"clip"}}>
         <div style={{height:190,background:"linear-gradient(135deg,var(--red) 0%,#6B0000 50%,#0A0A0A 100%)",position:"relative",overflow:"hidden",borderBottom:"2px solid var(--border)"}}>
           <div style={{position:"absolute",fontFamily:"var(--fd)",fontSize:160,color:"rgba(255,255,255,.04)",bottom:-16,left:-8,letterSpacing:-7}}>VIBR</div>
         </div>
-        <div style={{maxWidth:820,margin:"0 auto",padding:"0 28px"}}>
-          <div style={{display:"flex",alignItems:"flex-end",gap:18,marginTop:-42,marginBottom:24,position:"relative",zIndex:2}}>
+        <div className="vibr-profile-inner" style={{width:"100%",maxWidth:820,minWidth:0,margin:"0 auto",padding:"0 28px",boxSizing:"border-box"}}>
+          <div className="vibr-profile-identity" style={{display:"flex",alignItems:"flex-end",gap:18,marginTop:-42,marginBottom:24,position:"relative",zIndex:2,minWidth:0}}>
             <div style={{width:86,height:86,border:"4px solid var(--bg)",flexShrink:0,position:"relative"}}>
               {displayAvatar
                 ? <img src={displayAvatar} alt={displayName} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
@@ -2513,23 +2530,23 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile}){
               {session && <AvatarUpload userId={session.user.id} currentUrl={displayAvatar} onSuccess={url=>{toast.success("Photo updated!");}} style={{position:"absolute",bottom:0,right:0}}/>}
             </div>
             <div style={{flex:1,paddingBottom:5}}>
-              <div style={{display:"flex",alignItems:"center",gap:11,marginBottom:3}}>
+              <div className="vibr-profile-name-row" style={{display:"flex",alignItems:"center",gap:11,marginBottom:3,minWidth:0,flexWrap:"wrap"}}>
                 <div style={{fontFamily:"var(--fd)",fontSize:36,letterSpacing:2,lineHeight:1}}>TOLU KEHINDE</div>
                 <div style={{background:"var(--gold)",color:"#000",fontFamily:"var(--fm)",fontSize:9,padding:"3px 10px",letterSpacing:2}}>VIBE LORD 🔥</div>
               </div>
               <div style={{color:"var(--muted)",fontFamily:"var(--fm)",fontSize:10,letterSpacing:2}}>@tolu_builds · Lagos, Nigeria 🇳🇬</div>
             </div>
-            <div style={{display:"flex",gap:8,paddingBottom:5}}>
+            <div className="vibr-profile-actions" style={{display:"flex",gap:8,paddingBottom:5,flexWrap:"wrap"}}>
               <Btn v={following?"ghost":"primary"} onClick={()=>setFollowing(f=>!f)}>{following?"Following ✓":"Follow"}</Btn>
               <Btn v="ghost" onClick={()=>navigate("messages")}>💬 Message</Btn>
             </div>
           </div>
           <p style={{color:"#aaa",fontSize:13,lineHeight:1.8,maxWidth:540,marginBottom:20}}>Building tech for African farmers and small businesses. Vibe coding with React Native + Node.js. Looking for a co-founder on my agritech startup. DM me 🌱</p>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>{["React Native","Node.js","Python","Supabase","TensorFlow","Paystack"].map(s=><span key={s} style={{padding:"4px 11px",background:"var(--s2)",border:"1px solid var(--border)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,color:"var(--muted)"}}>{s}</span>)}</div>
-          <div style={{display:"flex",gap:0,marginBottom:32,border:"2px solid var(--border)",overflow:"hidden"}}>
+          <div className="vibr-profile-stats" style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:0,marginBottom:32,border:"2px solid var(--border)",overflow:"hidden",minWidth:0}}>
             {[["3","Projects"],["1.2K","Vibe Score"],["248","Followers"],["12","Following"],["7","Collabs"]].map(([v,l],i)=><div key={l} style={{flex:1,padding:"16px 12px",textAlign:"center",borderRight:i<4?"2px solid var(--border)":"none",background:i===1?"rgba(240,165,0,.05)":"transparent"}}><div style={{fontFamily:"var(--fd)",fontSize:28,color:i===1?"var(--gold)":"var(--white)",lineHeight:1}}>{v}</div><div style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)",letterSpacing:2,textTransform:"uppercase",marginTop:3}}>{l}</div></div>)}
           </div>
-          <div style={{display:"flex",borderBottom:"2px solid var(--border)",marginBottom:26}}>
+          <div className="vibr-profile-tabs" style={{display:"flex",borderBottom:"2px solid var(--border)",marginBottom:26,minWidth:0,overflowX:"auto"}}>
             {["projects","activity","sqvad","collabs","bounties"].map(t=><button key={t} onClick={()=>setTab(t)} style={{padding:"11px 20px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,textTransform:"uppercase",background:"transparent",border:"none",cursor:"pointer",color:tab===t?"var(--white)":"var(--muted)",borderBottom:tab===t?"3px solid var(--red)":"3px solid transparent",marginBottom:-2,transition:"color .15s"}}>{t==="sqvad"?"MY SQUAD":t}</button>)}
           </div>
           {tab==="projects"&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:16,paddingBottom:52}}>
