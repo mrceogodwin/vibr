@@ -106,7 +106,6 @@ export default function LandingPage({ navigate, getPosts }) {
           <div className="vh-kicker"><span/> AFRICA'S BUILDER MOVEMENT — EST. 2025</div>
           <h1><span className="vh-word-drop">DROP.</span><span className="vh-word-build">BUILD.</span><span className="vh-word-vibe">VIBE.</span></h1>
           <p className="vh-hero-lede">The network for Africa's next generation of builders.</p>
-          <p className="vh-hero-sub">Show what you're building. Find your people. Get seen by the community and the world.</p>
           <div className="vh-hero-actions">
             <button className="vh-primary" onClick={() => go("account-signup")}>JOIN VIBR <Arrow/></button>
             <button className="vh-secondary" onClick={() => go("feed")}>EXPLORE THE FEED</button>
@@ -119,12 +118,8 @@ export default function LandingPage({ navigate, getPosts }) {
         </div>
 
         <div className="vh-hero-visual" role="img" aria-label="African young builders collaborating around a laptop, with headphones, green code and a digital Africa network">
-          <div className="vh-terminal">
-            <span>&gt; build()</span><span>&gt; deploy()</span><b>&gt; vibe()</b><span>&gt; africa.connect()</span>
-          </div>
-          <div className="vh-visual-caption"><i/> BUILT TOGETHER. BUILT IN AFRICA.</div>
           <div className="vh-feed-panel">
-            <div className="vh-feed-head"><span><i/> LATEST DROPS</span><button onClick={() => go("feed")}>VIEW FEED <Arrow/></button></div>
+            <div className="vh-feed-head"><span><i/> LIVE FEED <b>|</b></span></div>
             <div className="vh-feed-grid">
               {drops.map((post, index) => <DropCard key={post.id || index} post={post} index={index} onOpen={() => go("feed")}/>)}
               {!dropsLoading && drops.length === 0 && (
@@ -142,7 +137,7 @@ export default function LandingPage({ navigate, getPosts }) {
       </section>
 
       <div className="vh-ticker" aria-label="VIBR tagline">
-        <span>DROP. BUILD. VIBE.</span><b>◆</b><span>54 COUNTRIES. ONE HUB.</span><b>◆</b><span>AFRICA BUILDS DIFFERENT.</span>
+        <span>DROP. BUILD. VIBE.</span><b>/</b><span>54 COUNTRIES. ONE HUB.</span><b>/</b><span>AFRICA BUILDS DIFFERENT.</span>
       </div>
 
       <section className="vh-feature-row" aria-label="What you can do on VIBR">
@@ -496,4 +491,175 @@ const CSS = `
   .vh-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
   .vh-stat strong{font-size:24px}
 }
+/* ── IMAGE 2 REFERENCE MATCH: desktop hero, image crop, feed and paper grid ── */
+@media(min-width:761px){
+  .vh-nav{
+    grid-template-columns:minmax(180px,22.3%) minmax(0,1fr) minmax(220px,21.7%);
+    padding:0 clamp(24px,3.2vw,54px);
+    position:relative;
+  }
+  .vh-nav:before,.vh-nav:after{
+    content:"";position:absolute;top:17px;bottom:17px;width:2px;background:#161616;opacity:.9;pointer-events:none;
+  }
+  .vh-nav:before{left:22.3%}
+  .vh-nav:after{right:21.7%}
+  .vh-brand{font-size:38px;letter-spacing:5px;gap:3px}
+  .vh-brand-v{color:var(--ink)}
+  .vh-brand-i{color:var(--red)}
+  .vh-brand-b{color:var(--gold)}
+  .vh-brand-r{color:var(--green)}
+  .vh-nav-links{justify-content:center;gap:clamp(16px,2.4vw,40px)}
+  .vh-nav-links button{font-family:Impact,"Arial Narrow",Haettenschweiler,sans-serif;font-size:13px;letter-spacing:2px}
+  .vh-nav-actions{gap:12px}
+  .vh-login,.vh-join{height:46px;padding:0 22px;font-size:13px}
+  .vh-hero{
+    grid-template-columns:34.6% 65.4%;
+    height:637px;min-height:637px;
+  }
+  .vh-hero-copy{
+    height:637px;min-height:0;
+    padding:32px clamp(28px,3.16vw,52px) 28px clamp(28px,3.16vw,52px);
+    justify-content:center;
+    background-color:#f6f2e9;
+    background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.009) 0,rgba(0,0,0,.009) 1px,transparent 1px,transparent 4px),repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0,rgba(255,255,255,.12) 1px,transparent 1px,transparent 5px);
+  }
+  .vh-kicker{font-family:Impact,"Arial Narrow",sans-serif;font-size:11px;letter-spacing:2px;padding:8px 14px;margin-bottom:21px}
+  .vh-hero h1{
+    width:142%;transform:scaleX(.70);transform-origin:left top;
+    font-family:Impact,"Arial Narrow",Haettenschweiler,sans-serif;
+    font-size:clamp(94px,7.5vw,124px);font-weight:900;line-height:.82;
+    letter-spacing:-1.8px;
+  }
+  .vh-word-drop{color:#090909}
+  .vh-word-build{color:#f3ad00;text-shadow:2px 2px 0 #111}
+  .vh-word-vibe{color:#dc2929}
+  .vh-hero-lede{font-size:18px;font-weight:500;line-height:1.35;color:#111;max-width:520px;margin:8px 0 0}
+  .vh-hero-sub{display:none}
+  .vh-hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:20px;flex-wrap:nowrap;margin-top:28px;max-width:100%}
+  .vh-hero-actions .vh-primary,.vh-hero-actions .vh-secondary{
+    min-width:0;width:100%;min-height:56px;padding:0 12px;
+    font-family:Impact,"Arial Narrow",sans-serif;font-size:15px;letter-spacing:1.8px;
+    white-space:nowrap;
+  }
+  .vh-stats{margin-top:auto;padding-top:19px;border-top:1px solid #a6a096}
+  .vh-stat{padding:0 18px;border-right:2px solid #bdb6aa}
+  .vh-stat:first-child{padding-left:0}
+  .vh-stat strong{font-family:Impact,"Arial Narrow",sans-serif;font-size:39px;line-height:1}
+  .vh-stat span{font-family:Impact,"Arial Narrow",sans-serif;font-size:12px;letter-spacing:3px;color:#282622}
+  .vh-hero-visual{
+    height:637px;min-height:637px;
+    background-color:#050807;
+    background-size:100% auto;background-position:center top;background-repeat:no-repeat;
+    padding:0 58px 18px 26px;
+    align-items:flex-end;
+  }
+  .vh-hero-visual:before{background:linear-gradient(180deg,transparent 0%,transparent 58%,rgba(0,0,0,.22) 100%)}
+  .vh-hero-visual:after{display:none}
+  .vh-flag-rail{width:40px}
+  .vh-feed-panel{
+    width:100%;height:170px;min-height:170px;max-width:none;
+    margin:0;padding:10px 13px 11px;
+    display:flex;flex-direction:column;
+    background:rgba(5,7,7,.93);border:1px solid rgba(255,255,255,.9);
+  }
+  .vh-feed-head{justify-content:flex-start;min-height:25px;padding-bottom:7px;margin-bottom:5px}
+  .vh-feed-head>span{font-family:Impact,"Arial Narrow",sans-serif;font-size:13px;letter-spacing:3px}
+  .vh-feed-head>span>b{font-weight:400;color:#cfcfcf;margin-left:13px}
+  .vh-feed-head i{width:8px;height:8px}
+  .vh-feed-head button{display:none}
+  .vh-feed-grid{grid-template-columns:repeat(3,minmax(0,1fr));flex:1;min-height:0}
+  .vh-drop-card{padding:7px 13px 3px;border-right:1px solid rgba(255,255,255,.35)}
+  .vh-drop-card:first-child{padding-left:6px}
+  .vh-drop-card:last-child{border-right:0}
+  .vh-drop-card-top{gap:10px}
+  .vh-avatar{width:31px;height:31px;font-size:14px}
+  .vh-drop-author b{font-size:13px}
+  .vh-drop-author small{font-size:9px}
+  .vh-drop-votes{font-size:12px}
+  .vh-drop-title{font-size:12px;line-height:1.3;margin:6px 0 4px;white-space:normal}
+  .vh-drop-card p{display:-webkit-box;font-size:11px;line-height:1.35;margin:0 0 5px;-webkit-line-clamp:1}
+  .vh-tag-chip{font-size:9px;padding:2px 6px}
+  .vh-feed-empty{gap:8px}
+  .vh-feed-empty b{font-size:12px}
+  .vh-feed-empty span{font-size:10px}
+  .vh-ticker{
+    min-height:50px;padding:10px clamp(18px,4vw,64px);
+    background:#090909;border-bottom:2px solid #090909;
+    justify-content:space-around;gap:14px;
+    font-family:Impact,"Arial Narrow",sans-serif;font-size:16px;letter-spacing:3px;
+  }
+  .vh-ticker b{color:#f5f1e8;font-size:17px;font-weight:400}
+  .vh-feature-row{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    background-color:#f6f2e9;
+    background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.009) 0,rgba(0,0,0,.009) 1px,transparent 1px,transparent 4px);
+  }
+  .vh-feature{min-height:166px;padding:26px 30px;gap:19px;align-items:center}
+  .vh-feature-icon{font-size:40px}
+  .vh-feature-divider{width:2px;align-self:center;height:62px}
+  .vh-feature-copy b{font-family:Impact,"Arial Narrow",sans-serif;font-size:25px;letter-spacing:.7px}
+  .vh-feature-copy small{font-size:13px;line-height:1.5;color:#494640}
+  .vh-feature-copy em{font-size:10px;letter-spacing:1.6px}
+}
+@media(min-width:761px) and (max-width:1100px){
+  .vh-hero{grid-template-columns:38% 62%;height:590px;min-height:590px}
+  .vh-hero-copy,.vh-hero-visual{height:590px;min-height:590px}
+  .vh-hero h1{font-size:clamp(82px,9vw,100px)}
+  .vh-hero-visual{padding-right:48px;padding-left:16px}
+  .vh-feed-panel{height:182px;min-height:182px}
+  .vh-drop-card{padding-left:7px;padding-right:7px}
+  .vh-drop-author b{font-size:11px}
+  .vh-drop-title{font-size:10px}
+  .vh-drop-card p{font-size:9px}
+  .vh-feature{padding:20px 14px;gap:12px}
+  .vh-feature-copy b{font-size:19px}
+  .vh-feature-copy small{font-size:11px}
+}
+@media(max-width:760px){
+  .vh-nav:before,.vh-nav:after{display:none}
+  .vh-nav{grid-template-columns:1fr auto}
+  .vh-brand{font-size:29px;letter-spacing:3px}
+  .vh-brand-b{color:var(--gold)}
+  .vh-hero{height:auto;min-height:0}
+  .vh-hero-copy{height:auto;min-height:0;padding:28px 20px 20px;background-color:#f6f2e9}
+  .vh-kicker{font-size:8px;letter-spacing:1.3px;margin-bottom:18px}
+  .vh-hero h1{
+    width:143%;transform:scaleX(.70);transform-origin:left top;
+    font-family:Impact,"Arial Narrow",Haettenschweiler,sans-serif;
+    font-size:clamp(78px,17vw,112px);line-height:.82;letter-spacing:-1.2px;
+  }
+  .vh-hero-lede{font-size:15px;line-height:1.45;margin-top:10px;font-weight:500}
+  .vh-hero-sub{display:none}
+  .vh-hero-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:19px}
+  .vh-hero-actions .vh-primary,.vh-hero-actions .vh-secondary{width:100%;min-width:0;min-height:48px;padding:0 7px;font-size:10px;letter-spacing:.8px;white-space:nowrap}
+  .vh-stats{margin-top:23px;padding-top:14px}
+  .vh-stat strong{font-size:28px}
+  .vh-stat span{font-size:8px;letter-spacing:1.4px}
+  .vh-hero-visual{
+    height:auto;min-height:0;
+    background-size:100% auto;background-position:center top;background-repeat:no-repeat;
+    display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;
+    padding:calc(100vw * .4286 + 15px) 12px 12px;
+  }
+  .vh-hero-visual:before{background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.10) 45%,rgba(0,0,0,.65) 100%)}
+  .vh-flag-rail{width:11px}
+  .vh-feed-panel{width:100%;height:auto;min-height:0;margin:0;padding:9px 10px;background:rgba(5,7,7,.95)}
+  .vh-feed-head{min-height:23px;justify-content:flex-start;margin-bottom:5px}
+  .vh-feed-head>span{font-size:10px;letter-spacing:2px}
+  .vh-feed-grid{grid-template-columns:1fr;flex:auto}
+  .vh-drop-card{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;gap:5px 8px;padding:8px 2px;border-right:0;border-bottom:1px solid rgba(255,255,255,.22)}
+  .vh-drop-card:last-child{border-bottom:0}
+  .vh-drop-card-top{grid-column:1/3}
+  .vh-drop-author b{font-size:11px}
+  .vh-drop-title{margin:0;font-size:11px;white-space:normal;grid-column:1}
+  .vh-drop-card p{display:none}
+  .vh-drop-tags{grid-column:2;grid-row:2;justify-content:flex-end;align-items:start}
+  .vh-ticker{justify-content:flex-start;overflow:hidden;white-space:nowrap;gap:14px;padding:10px 16px;font-size:10px;letter-spacing:1.5px}
+  .vh-feature{padding:20px 18px}
+}
+@media(max-width:390px){
+  .vh-hero-actions{grid-template-columns:1fr 1fr}
+  .vh-hero-actions .vh-primary,.vh-hero-actions .vh-secondary{font-size:9px;padding:0 4px}
+}
+
 `;
