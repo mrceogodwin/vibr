@@ -504,6 +504,9 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
   const dashLabel          = isInvestorBrowsing ? "Investor Dashboard" : "Company Dashboard";
   const roleLabel          = isInvestorBrowsing ? "💼 INVESTOR" : "🏢 COMPANY";
 
+  const [mobileMenuOpen,setMobileMenuOpen]=useState(false);
+  const openPage=(page)=>{setMobileMenuOpen(false);navigate(page);};
+
   // ── Builder nav ─────────────────────────────────────────────────────────────
   const nav=[
     ["🏠","Feed","feed"],["✦","Drop","drop"],["🤝","Collabs","collabs"],
@@ -545,9 +548,6 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
       </div>
     );
   }
-
-  const [mobileMenuOpen,setMobileMenuOpen]=useState(false);
-  const openPage=(page)=>{setMobileMenuOpen(false);navigate(page);};
 
   // ── BUILDER: desktop sidebar + mobile hamburger drawer ──────────────────────
   return (
