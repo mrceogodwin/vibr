@@ -1691,7 +1691,7 @@ function FeedPage({navigate,returnTo,userRole,session}){
                     {post.seriesId&&<Tag label={"SERIES · "+(post.episodeTitle||("EPISODE "+post.episodeNumber))} color="green"/>}
                   </div>
                   <div style={{display:"flex",gap:16}}>
-                    {[["💬",`${post.comments.length} Comments`,()=>navigate(`post-${post.id}`)],["🔗","Share",null],["🤝","Collab",()=>navigate("collabs")],["🔖","Save",null]].map(([icon,label,action])=><button key={label} onClick={action||undefined} style={{background:"transparent",border:"none",color:"var(--muted)",fontSize:10,fontFamily:"var(--fm)",cursor:"pointer",display:"flex",alignItems:"center",gap:4,padding:"2px 0",transition:"color .15s",letterSpacing:1}} onMouseEnter={e=>e.currentTarget.style.color="var(--gold)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted)"}>{icon} {label}</button>)}
+                    {[["💬",`${post.comments} Comments`,()=>navigate(`post-${post.id}`)],["🔗","Share",null],["🤝","Collab",()=>navigate("collabs")],["🔖","Save",null]].map(([icon,label,action])=><button key={label} onClick={action||undefined} style={{background:"transparent",border:"none",color:"var(--muted)",fontSize:10,fontFamily:"var(--fm)",cursor:"pointer",display:"flex",alignItems:"center",gap:4,padding:"2px 0",transition:"color .15s",letterSpacing:1}} onMouseEnter={e=>e.currentTarget.style.color="var(--gold)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted)"}>{icon} {label}</button>)}
                   </div>
                   {session?.user?.id===post.author_id&&(
                     <PostMenu
@@ -1743,85 +1743,149 @@ function FeedPage({navigate,returnTo,userRole,session}){
 }
 
 // ── POST DETAIL ───────────────────────────────────────────────────────────────
+
 function PostDetailPage({postId,navigate,returnTo,userRole,session}){
-  const post=FEED_POSTS.find(p=>p.id===postId)||FEED_POSTS[0];
   const [newC,setNewC]=useState("");
   const [comments,setComments]=useState([]);
   const [voted,setVoted]=useState(false);
   const [posting,setPosting]=useState(false);
+  const [livePost,setLivePost]=useState(null);
+  const [episodes,setEpisodes]=useState([]);
+  const [detailLoading,setDetailLoading]=useState(true);
 
   useEffect(()=>{
-    if(!postId) return;
-    getComments(postId)
-      .then(data=>{
-        if(data&&data.length>0){
-          setComments(data.map(c=>({
-            id:c.id,
-            user:c.profiles?.full_name||c.profiles?.username||"Builder",
-            av:(c.profiles?.username||"B").slice(0,2).toUpperCase(),
-            text:c.content,
-            time:new Date(c.created_at).toLocaleDateString(),
-          })));
-        } else {
-          setComments(post.comments||[]);
+    let active=true;
+    const load=async()=>{
+      setDetailLoading(true);
+      try{
+        const [p,commentRows]=await Promise.all([getPostDetail(postId),getComments(postId)]);
+        if(!active)return;
+        setLivePost(p);
+        setComments((commentRows||[]).map(x=>({
+          id:x.id,user:x.profiles?.full_name||x.profiles?.username||"Builder",
+          av:(x.profiles?.username||"B").slice(0,2).toUpperCase(),text:x.content,
+          time:new Date(x.created_at).toLocaleDateString()
+        })));
+        if(p.series_id){
+          const rows=await getSeriesEpisodes(p.series_id);
+          if(active)setEpisodes(rows);
+        }else if(active)setEpisodes([]);
+      }catch(e){
+        console.error("Post detail load failed:",e);
+        if(active){
+          const sample=FEED_POSTS.find(x=>String(x.id)===String(postId));
+          setLivePost(sample||null);
+          setEpisodes([]);
+          if(sample)setComments(sample.comments||[]);
         }
-      })
-      .catch(()=>setComments(post.comments||[]));
+      }finally{if(active)setDetailLoading(false);}
+    };
+    load();
+    return()=>{active=false;};
   },[postId]);
-  return (
+
+  const sample=FEED_POSTS.find(x=>String(x.id)===String(postId));
+  const profile=livePost?.profiles||{};
+  const post=livePost?{
+    ...livePost,
+    name:profile.full_name||profile.username||"Builder",
+    handle:profile.username||"builder",
+    loc:profile.country||"Africa 🌍",
+    av:(profile.username||"B").slice(0,2).toUpperCase(),
+    time:new Date(livePost.created_at).toLocaleDateString(),
+    votes:livePost.vote_count||0,
+    desc:livePost.description||"",
+    tags:(livePost.tags||[]).map(t=>[t,"gold"])
+  }:sample;
+
+  const currentEpisodeIndex=episodes.findIndex(e=>String(e.id)===String(postId));
+  const previousEpisode=currentEpisodeIndex>0?episodes[currentEpisodeIndex-1]:null;
+  const nextEpisode=currentEpisodeIndex>=0&&currentEpisodeIndex<episodes.length-1?episodes[currentEpisodeIndex+1]:null;
+
+  return(
     <AppShell navigate={navigate} activePage="feed" returnTo={returnTo} userRole={userRole}>
-      <div style={{maxWidth:720,margin:"0 auto",padding:"28px 28px 64px"}}>
-        <button onClick={()=>navigate(returnTo||"feed")} style={{background:"transparent",border:"none",color:"var(--muted)",cursor:"pointer",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,marginBottom:20,display:"flex",alignItems:"center",gap:5}} onMouseEnter={e=>e.target.style.color="var(--white)"} onMouseLeave={e=>e.target.style.color="var(--muted)"}>← {returnTo?"Back to Dashboard":"Back to Feed"}</button>
-        <div style={{background:"var(--surface)",border:"2px solid var(--border)",padding:26,marginBottom:18,animation:"fadeUp .4s ease both"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
-            <Av name={post.av} color={post.avc} size={40}/>
-            <div style={{flex:1}}><div style={{fontWeight:700,fontSize:14}}>{post.name}</div><div style={{color:"var(--muted)",fontSize:10,fontFamily:"var(--fm)"}}>@{post.handle} · {post.loc} · {post.time}</div></div>
-            {post.trending&&<span style={{background:"var(--red)",color:"#fff",fontSize:8,padding:"2px 8px",fontFamily:"var(--fm)",letterSpacing:1}}>🔥 TRENDING</span>}
-          </div>
-          <div style={{fontFamily:"var(--fd)",fontSize:27,letterSpacing:1,lineHeight:1.1,marginBottom:11}}>{post.title}</div>
-          <p style={{color:"#aaa",fontSize:14,lineHeight:1.8,marginBottom:14}}>{post.desc}</p>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>{post.tags.map(([t,c])=><Tag key={t} label={t} color={c}/>)}</div>
-          <div style={{display:"flex",gap:9,paddingTop:14,borderTop:"1px solid var(--border)"}}>
-            <button onClick={async()=>{if(!session){navigate("login");return;}setVoted(v=>!v);try{await votePost(postId,session.user.id);}catch{}}} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 16px",background:voted?"var(--gold)":"var(--s2)",border:`2px solid ${voted?"var(--gold)":"var(--border)"}`,color:voted?"#000":"var(--muted)",fontFamily:"var(--fd)",fontSize:16,letterSpacing:2,cursor:"pointer",transition:"all .15s"}}>▲ {post.votes+(voted?1:0)}</button>
-            <Btn v="green" onClick={()=>navigate("collabs")}>🤝 Request Collab</Btn>
-            <Btn v="ghost" onClick={()=>navigate("messages")}>💬 Message</Btn>
-          </div>
-        </div>
-        <div style={{background:"var(--surface)",border:"2px solid var(--border)",padding:22}}>
-          <div style={{fontFamily:"var(--fd)",fontSize:22,letterSpacing:2,marginBottom:16}}>COMMENTS <span style={{color:"var(--muted)",fontSize:14}}>({comments.length})</span></div>
-          <div style={{display:"flex",gap:9,marginBottom:18,paddingBottom:18,borderBottom:"1px solid var(--border)"}}>
-            <Av name="YOU" color="red" size={32}/>
-            <div style={{flex:1}}>
-              <textarea value={newC} onChange={e=>setNewC(e.target.value)} placeholder="Share thoughts, feedback, or collab interest..." rows={3} style={{width:"100%",minWidth:0,boxSizing:"border-box",padding:"12px 14px",background:"var(--s2)",border:"2px solid var(--border)",color:"var(--text)",fontSize:16,outline:"none",fontFamily:"var(--fb)",resize:"vertical",lineHeight:1.6,borderRadius:0,transition:"border-color .2s",WebkitAppearance:"none"}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
-              <div style={{display:"flex",justifyContent:"flex-end",marginTop:6}}>
-                <button onClick={async()=>{
-                  if(!newC.trim())return;
-                  if(!session){navigate("login");return;}
-                  const text=newC.trim(); setPosting(true);
-                  try{
-                    const saved=await createComment({postId,authorId:session.user.id,content:text});
-                    setComments(c=>[...c,{id:saved?.id||Date.now(),user:"You",av:"YO",text:saved?.content||text,time:"Just now"}]);
-                    setNewC("");
-                    toast.success("Comment posted!");
-                  }catch(e){
-                    console.error("Supabase comment insert failed:",e);
-                    toast.error(e?.message ? `Comment failed: ${e.message}` : "Comment could not be saved. Please try again.");
-                  }finally{setPosting(false);}
-                }} disabled={posting} style={{background:"var(--red)",color:"#fff",border:"2px solid var(--red)",padding:"6px 16px",fontFamily:"var(--fd)",fontSize:14,letterSpacing:2,cursor:"pointer",transition:"all .15s",opacity:posting?.6:1}} onMouseEnter={e=>{e.target.style.background="transparent";e.target.style.color="var(--red)";}} onMouseLeave={e=>{e.target.style.background="var(--red)";e.target.style.color="#fff";}}>POST →</button>
-              </div>
+      <div style={{maxWidth:820,margin:"0 auto",padding:"28px clamp(16px,3vw,28px) 64px"}}>
+        <button onClick={()=>navigate(returnTo||"feed")} style={{background:"transparent",border:"none",color:"var(--muted)",cursor:"pointer",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,marginBottom:20,display:"flex",alignItems:"center",gap:5}}>← {returnTo?"Back to Dashboard":"Back to Feed"}</button>
+        {detailLoading&&!post&&<div style={{padding:32,textAlign:"center",color:"var(--muted)",fontFamily:"var(--fm)",fontSize:10}}>LOADING PROJECT…</div>}
+        {!detailLoading&&!post&&<EmptyState emoji="📦" title="DROP NOT FOUND" sub="This project may have been removed or is no longer available." cta="Back to Feed →" onCta={()=>navigate("feed")}/>}
+        {post&&<>
+          <div style={{background:"var(--surface)",border:"2px solid var(--border)",padding:"clamp(16px,3vw,26px)",marginBottom:18,animation:"fadeUp .4s ease both"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:13}}>
+              <Av name={post.av||"B"} color="red" size={40}/>
+              <div style={{flex:1,minWidth:0}}><div style={{fontWeight:700,fontSize:14}}>{post.name}</div><div style={{color:"var(--muted)",fontSize:10,fontFamily:"var(--fm)"}}>@{post.handle} · {post.loc} · {post.time}</div></div>
+              {post.series_id&&<Tag label="PROJECT SERIES" color="green"/>}
+            </div>
+            <div style={{fontFamily:"var(--fd)",fontSize:30,letterSpacing:1,lineHeight:1.1,marginBottom:11}}>{post.title}</div>
+            <p style={{color:"var(--text)",fontSize:14,lineHeight:1.8,marginBottom:14,whiteSpace:"pre-wrap"}}>{post.desc}</p>
+            {post.media_url&&post.media_type?.startsWith("video/")&&<video src={post.media_url} controls playsInline preload="metadata" style={{width:"100%",maxHeight:520,background:"#000",display:"block",margin:"16px 0",border:"1px solid var(--border)"}} aria-label={"Project update video: "+post.title}/>}
+            {post.demo_url&&<p style={{fontSize:12,marginBottom:9}}><a href={post.demo_url} target="_blank" rel="noreferrer" style={{color:"var(--green)"}}>↗ LIVE DEMO</a></p>}
+            {post.github_url&&<p style={{fontSize:12,marginBottom:9}}><a href={post.github_url} target="_blank" rel="noreferrer" style={{color:"var(--gold)"}}>↗ GITHUB REPOSITORY</a></p>}
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>{(post.tags||[]).map(([t,col])=><Tag key={t} label={t} color={col}/>)}</div>
+            <div style={{display:"flex",gap:9,paddingTop:14,borderTop:"1px solid var(--border)",flexWrap:"wrap"}}>
+              <button onClick={async()=>{if(!session){navigate("login");return;}setVoted(v=>!v);try{await votePost(postId,session.user.id);}catch{}}} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 16px",background:voted?"var(--gold)":"var(--s2)",border:"2px solid "+(voted?"var(--gold)":"var(--border)"),color:voted?"#000":"var(--muted)",fontFamily:"var(--fd)",fontSize:16,letterSpacing:2,cursor:"pointer"}}>▲ {(post.votes||post.vote_count||0)+(voted?1:0)}</button>
+              <Btn v="green" onClick={()=>navigate("collabs")}>🤝 Request Collab</Btn>
+              <Btn v="ghost" onClick={()=>navigate("messages")}>💬 Message</Btn>
             </div>
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            {comments.map((c,i)=><div key={i} style={{display:"flex",gap:9,animation:`fadeUp .3s ${i*.07}s ease both`}}>
-              <Av name={c.user} color={["red","gold","green"][i%3]} size={30}/>
-              <div style={{flex:1,background:"var(--s2)",padding:"11px 13px",border:"1px solid var(--border)"}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{fontWeight:700,fontSize:12}}>{c.user}</span><span style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)"}}>{c.time}</span></div>
-                <div style={{color:"#bbb",fontSize:13,lineHeight:1.6}}>{c.text}</div>
+
+          {post.series_id&&<section style={{background:"var(--surface)",border:"2px solid var(--border)",padding:"clamp(16px,3vw,22px)",marginBottom:18}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",marginBottom:5}}>
+              <div style={{fontFamily:"var(--fd)",fontSize:24,letterSpacing:2}}>PROJECT <span style={{color:"var(--green)"}}>JOURNEY</span></div>
+              <Tag label={episodes.length+" UPDATES"} color="green"/>
+            </div>
+            <div style={{fontSize:13,fontWeight:700,marginBottom:5}}>{post.series?.title||"Project Series"}</div>
+            <p style={{color:"var(--muted)",fontSize:11,lineHeight:1.6,marginBottom:15}}>{post.series?.description||"Follow the build, one update at a time."}</p>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {episodes.map((ep,i)=>{
+                const active=String(ep.id)===String(postId);
+                return <button type="button" key={ep.id} onClick={()=>navigate("post-"+ep.id)} aria-current={active?"step":undefined} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 13px",textAlign:"left",background:active?"rgba(26,122,60,.12)":"var(--s2)",border:"1px solid "+(active?"var(--green)":"var(--border)"),color:"var(--text)",cursor:"pointer"}}>
+                  <span style={{width:31,height:31,display:"grid",placeItems:"center",flexShrink:0,background:active?"var(--green)":"var(--surface)",color:active?"#fff":"var(--muted)",fontFamily:"var(--fm)",fontSize:10}}>{String(i+1).padStart(2,"0")}</span>
+                  <span style={{minWidth:0,flex:1}}><b style={{display:"block",fontSize:12}}>{ep.episode_title||("Episode "+(i+1))}</b><small style={{display:"block",marginTop:3,color:"var(--muted)",fontSize:10}}>{ep.title}</small></span>
+                  {ep.media_url&&<span aria-label="Contains video" title="Contains video">▶</span>}
+                  {active&&<Tag label="NOW WATCHING" color="green"/>}
+                </button>;
+              })}
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",gap:10,marginTop:14}}>
+              <button type="button" disabled={!previousEpisode} onClick={()=>previousEpisode&&navigate("post-"+previousEpisode.id)} style={{padding:"9px 14px",border:"1px solid var(--border)",background:"transparent",color:previousEpisode?"var(--text)":"var(--muted)",opacity:previousEpisode?1:.45,cursor:previousEpisode?"pointer":"not-allowed",fontFamily:"var(--fm)",fontSize:9}}>← PREVIOUS</button>
+              <button type="button" disabled={!nextEpisode} onClick={()=>nextEpisode&&navigate("post-"+nextEpisode.id)} style={{padding:"9px 14px",border:"1px solid var(--green)",background:nextEpisode?"var(--green)":"transparent",color:nextEpisode?"#fff":"var(--muted)",opacity:nextEpisode?1:.45,cursor:nextEpisode?"pointer":"not-allowed",fontFamily:"var(--fm)",fontSize:9}}>NEXT UPDATE →</button>
+            </div>
+            {session?.user?.id===post.author_id&&<button type="button" onClick={()=>navigate("drop-series-"+post.series_id)} style={{marginTop:14,padding:"10px 13px",border:"1px solid var(--gold)",background:"transparent",color:"var(--gold)",cursor:"pointer",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1}}>＋ ADD NEXT UPDATE</button>}
+          </section>}
+
+          <section style={{background:"var(--surface)",border:"2px solid var(--border)",padding:"clamp(16px,3vw,22px)"}}>
+            <div style={{fontFamily:"var(--fd)",fontSize:22,letterSpacing:2,marginBottom:16}}>COMMENTS <span style={{color:"var(--muted)",fontSize:14}}>({comments.length})</span></div>
+            <div style={{display:"flex",gap:9,marginBottom:18,paddingBottom:18,borderBottom:"1px solid var(--border)"}}>
+              <Av name="YOU" color="red" size={32}/>
+              <div style={{flex:1,minWidth:0}}>
+                <textarea value={newC} onChange={e=>setNewC(e.target.value)} placeholder="Share thoughts, feedback, or collab interest..." rows={3} style={{width:"100%",minWidth:0,boxSizing:"border-box",padding:"12px 14px",background:"var(--s2)",border:"2px solid var(--border)",color:"var(--text)",fontSize:16,outline:"none",fontFamily:"var(--fb)",resize:"vertical",lineHeight:1.6,borderRadius:0}}/>
+                <div style={{display:"flex",justifyContent:"flex-end",marginTop:6}}>
+                  <button onClick={async()=>{
+                    if(!newC.trim())return;
+                    if(!session){navigate("login");return;}
+                    const text=newC.trim();setPosting(true);
+                    try{
+                      const saved=await createComment({postId,authorId:session.user.id,content:text});
+                      setComments(cs=>[...cs,{id:saved?.id||Date.now(),user:"You",av:"YO",text:saved?.content||text,time:"Just now"}]);
+                      setNewC("");toast.success("Comment posted!");
+                    }catch(e){console.error("Supabase comment insert failed:",e);toast.error(e?.message||"Comment could not be saved. Please try again.");}
+                    finally{setPosting(false);}
+                  }} disabled={posting} style={{background:"var(--red)",color:"#fff",border:"2px solid var(--red)",padding:"7px 16px",fontFamily:"var(--fd)",fontSize:14,letterSpacing:2,cursor:posting?"wait":"pointer",opacity:posting?.6:1}}>POST →</button>
+                </div>
               </div>
-            </div>)}
-            {comments.length===0&&<div style={{textAlign:"center",color:"var(--muted)",padding:"24px",fontFamily:"var(--fm)",fontSize:10,letterSpacing:2}}>NO COMMENTS YET — BE FIRST 🔥</div>}
-          </div>
-        </div>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {comments.map((cm,i)=><div key={cm.id||i} style={{display:"flex",gap:9}}>
+                <Av name={cm.user} color={["red","gold","green"][i%3]} size={30}/>
+                <div style={{flex:1,background:"var(--s2)",padding:"11px 13px",border:"1px solid var(--border)"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span style={{fontWeight:700,fontSize:12}}>{cm.user}</span><span style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)"}}>{cm.time}</span></div>
+                  <div style={{color:"var(--text)",fontSize:13,lineHeight:1.6}}>{cm.text}</div>
+                </div>
+              </div>)}
+              {comments.length===0&&<div style={{textAlign:"center",color:"var(--muted)",padding:24,fontFamily:"var(--fm)",fontSize:10,letterSpacing:2}}>NO COMMENTS YET — BE FIRST 🔥</div>}
+            </div>
+          </section>
+        </>}
       </div>
     </AppShell>
   );
@@ -5227,6 +5291,8 @@ export default function App(){
   const isPost = page.startsWith("post-");
   const isHack = page.startsWith("hack-");
   const isMemberProfile = page.startsWith("profile-");
+  const isSeriesDrop = page.startsWith("drop-series-");
+  const targetSeriesId = isSeriesDrop ? page.slice(12) : null;
   const targetProfileId = isMemberProfile ? page.slice(8) : null;
   const postId = isPost ? page.slice(5) : null;
   const hackId = isHack ? parseInt(page.split("-")[1]) : null;
@@ -5290,7 +5356,7 @@ export default function App(){
       {page==="leaderboard"          && <LeaderboardPage  {...shellProps}/>}
       {page==="messages"             && <MessagesPage     {...shellProps}/>}
       {(page==="profile"||isMemberProfile) && <ProfilePage {...shellProps} targetProfileId={targetProfileId}/>}
-      {page==="drop"                 && <DropPage         {...shellProps}/>}
+      {(page==="drop"||isSeriesDrop) && <DropPage initialSeriesId={targetSeriesId} {...shellProps}/ >}
       {page==="search"               && <SearchPage       {...shellProps}/>}
       {page==="notifications"        && <NotificationsPage {...shellProps}/>}
       {page==="settings"             && <SettingsPage     {...shellProps}/>}
