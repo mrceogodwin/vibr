@@ -2540,8 +2540,14 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile}){
               <div style={{color:"var(--muted)",fontFamily:"var(--fm)",fontSize:10,letterSpacing:2}}>@tolu_builds · Lagos, Nigeria 🇳🇬</div>
             </div>
             <div className="vibr-profile-actions" style={{display:"flex",gap:8,paddingBottom:5,flexWrap:"wrap"}}>
-              <Btn v={following?"ghost":"primary"} onClick={()=>setFollowing(f=>!f)}>{following?"Following ✓":"Follow"}</Btn>
-              <Btn v="ghost" onClick={()=>navigate("messages")}>💬 Message</Btn>
+              {session ? (
+                <Btn v="primary" onClick={()=>navigate("settings")}>✏️ Edit Profile</Btn>
+              ) : (
+                <>
+                  <Btn v={following?"ghost":"primary"} onClick={()=>setFollowing(f=>!f)}>{following?"Following ✓":"Follow"}</Btn>
+                  <Btn v="ghost" onClick={()=>navigate("messages")}>💬 Message</Btn>
+                </>
+              )}
             </div>
           </div>
           <p style={{color:"#aaa",fontSize:13,lineHeight:1.8,maxWidth:540,marginBottom:20}}>Building tech for African farmers and small businesses. Vibe coding with React Native + Node.js. Looking for a co-founder on my agritech startup. DM me 🌱</p>
