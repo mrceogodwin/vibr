@@ -37,8 +37,17 @@ const signUp=async({email,password,name,country,role,meta={}})=>{ const {data,er
 const signOut=async()=>{ const {error}=await supabase.auth.signOut(); if(error)throw error; };
 const resetPassword=async(email)=>{ const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${window.location.origin}/reset-password`}); if(error)throw error; };
 const getProfile=async(userId)=>{ const {data,error}=await supabase.from('profiles').select('*').eq('id',userId).single(); if(error)throw error; return data; };
-const getPosts=async({limit=20,offset=0}={})=>{ const {data,error}=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title),votes:votes(id),comments:comments(id)').order('created_at',{ascending:false}).range(offset,offset+limit-1); if(error)throw error; return data; };
-const getPostDetail=async(postId)=>{const {data,error}=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title,description)').eq('id',postId).single();if(error)throw error;return data;};
+const getPosts=async({limit=20,offset=0}={})=>{
+  let result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title),votes:votes(id),comments:comments(id)').order('created_at',{ascending:false}).range(offset,offset+limit-1);
+  // Keep the existing feed usable until the additive series migration is applied.
+  if(result.error)result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),votes:votes(id),comments:comments(id)').order('created_at',{ascending:false}).range(offset,offset+limit-1);
+  if(result.error)throw result.error;return result.data;
+};
+const getPostDetail=async(postId)=>{
+  let result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title,description)').eq('id',postId).single();
+  if(result.error)result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role)').eq('id',postId).single();
+  if(result.error)throw result.error;return result.data;
+};
 const getSeriesEpisodes=async(seriesId)=>{const {data,error}=await supabase.from('posts').select('id,title,description,media_url,media_type,episode_number,episode_title,created_at,author_id').eq('series_id',seriesId).order('episode_number',{ascending:true});if(error)throw error;return data||[];};
 const votePost=async(postId,userId)=>{ const {data:ex}=await supabase.from('votes').select('id').eq('post_id',postId).eq('user_id',userId).single(); if(ex){await supabase.from('votes').delete().eq('id',ex.id);return false;}else{await supabase.from('votes').insert({post_id:postId,user_id:userId});return true;} };
 const getComments=async(postId)=>{ const {data,error}=await supabase.from('comments').select('*,profiles:author_id(username,avatar_url)').eq('post_id',postId).order('created_at',{ascending:true}); if(error)throw error; return data; };
@@ -1691,7 +1700,7 @@ function FeedPage({navigate,returnTo,userRole,session}){
                     {post.seriesId&&<Tag label={"SERIES · "+(post.episodeTitle||("EPISODE "+post.episodeNumber))} color="green"/>}
                   </div>
                   <div style={{display:"flex",gap:16}}>
-                    {[["💬",`${post.comments} Comments`,()=>navigate(`post-${post.id}`)],["🔗","Share",null],["🤝","Collab",()=>navigate("collabs")],["🔖","Save",null]].map(([icon,label,action])=><button key={label} onClick={action||undefined} style={{background:"transparent",border:"none",color:"var(--muted)",fontSize:10,fontFamily:"var(--fm)",cursor:"pointer",display:"flex",alignItems:"center",gap:4,padding:"2px 0",transition:"color .15s",letterSpacing:1}} onMouseEnter={e=>e.currentTarget.style.color="var(--gold)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted)"}>{icon} {label}</button>)}
+                    {[["💬",`${Array.isArray(post.comments)?post.comments.length:(post.comments||0)} Comments`,()=>navigate(`post-${post.id}`)],["🔗","Share",null],["🤝","Collab",()=>navigate("collabs")],["🔖","Save",null]].map(([icon,label,action])=><button key={label} onClick={action||undefined} style={{background:"transparent",border:"none",color:"var(--muted)",fontSize:10,fontFamily:"var(--fm)",cursor:"pointer",display:"flex",alignItems:"center",gap:4,padding:"2px 0",transition:"color .15s",letterSpacing:1}} onMouseEnter={e=>e.currentTarget.style.color="var(--gold)"} onMouseLeave={e=>e.currentTarget.style.color="var(--muted)"}>{icon} {label}</button>)}
                   </div>
                   {session?.user?.id===post.author_id&&(
                     <PostMenu
@@ -1767,8 +1776,13 @@ function PostDetailPage({postId,navigate,returnTo,userRole,session}){
           time:new Date(x.created_at).toLocaleDateString()
         })));
         if(p.series_id){
-          const rows=await getSeriesEpisodes(p.series_id);
-          if(active)setEpisodes(rows);
+          try{
+            const rows=await getSeriesEpisodes(p.series_id);
+            if(active)setEpisodes(rows);
+          }catch(seriesError){
+            console.error("Project series episodes could not be loaded:",seriesError);
+            if(active)setEpisodes([]);
+          }
         }else if(active)setEpisodes([]);
       }catch(e){
         console.error("Post detail load failed:",e);
