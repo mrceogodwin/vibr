@@ -111,54 +111,5 @@ CREATE TRIGGER trg_posts_validate_series_owner
   FOR EACH ROW
   EXECUTE FUNCTION public.validate_post_series_owner();
 
--- Create a public-read video bucket with a 50 MB per-file limit.
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-  'project-videos',
-  'project-videos',
-  TRUE,
-  52428800,
-  ARRAY['video/mp4', 'video/quicktime', 'video/webm', 'video/x-m4v']::TEXT[]
-)
-ON CONFLICT (id) DO UPDATE
-SET
-  public = EXCLUDED.public,
-  file_size_limit = EXCLUDED.file_size_limit,
-  allowed_mime_types = EXCLUDED.allowed_mime_types;
-
-DROP POLICY IF EXISTS "Project videos are publicly readable" ON storage.objects;
-CREATE POLICY "Project videos are publicly readable"
-  ON storage.objects FOR SELECT
-  TO public
-  USING (bucket_id = 'project-videos');
-
-DROP POLICY IF EXISTS "Builders upload videos to own folder" ON storage.objects;
-CREATE POLICY "Builders upload videos to own folder"
-  ON storage.objects FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    bucket_id = 'project-videos'
-    AND (storage.foldername(name))[1] = auth.uid()::TEXT
-  );
-
-DROP POLICY IF EXISTS "Builders update videos in own folder" ON storage.objects;
-CREATE POLICY "Builders update videos in own folder"
-  ON storage.objects FOR UPDATE
-  TO authenticated
-  USING (
-    bucket_id = 'project-videos'
-    AND (storage.foldername(name))[1] = auth.uid()::TEXT
-  )
-  WITH CHECK (
-    bucket_id = 'project-videos'
-    AND (storage.foldername(name))[1] = auth.uid()::TEXT
-  );
-
-DROP POLICY IF EXISTS "Builders delete videos in own folder" ON storage.objects;
-CREATE POLICY "Builders delete videos in own folder"
-  ON storage.objects FOR DELETE
-  TO authenticated
-  USING (
-    bucket_id = 'project-videos'
-    AND (storage.foldername(name))[1] = auth.uid()::TEXT
-  );
+-- Video bytes are now stored by Cloudflare Stream. This migration only defines
+-- project-series metadata and the legacy media URL columns; no video bucket is created.
