@@ -582,9 +582,27 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
         <UserCard navigate={openPage}/>
       </div>
       <main id="main-content" role="main" className="vibr-main-content" style={{flex:1,minWidth:0,overflow:"auto"}} aria-label="Main content">{children}</main>
+      <nav className="vibr-bottom-dock" aria-label="Quick navigation">
+        <button type="button" className={activePage==="feed"?"vibr-dock-item active":"vibr-dock-item"} onClick={()=>openPage("feed")} aria-label="Feed">
+          <span className="vibr-dock-icon">⌂</span><span>Home</span>
+        </button>
+        <button type="button" className={activePage==="search"?"vibr-dock-item active":"vibr-dock-item"} onClick={()=>openPage("search")} aria-label="Search">
+          <span className="vibr-dock-icon">⌕</span><span>Search</span>
+        </button>
+        <button type="button" className="vibr-dock-create" onClick={()=>openPage("drop")} aria-label="Create a drop">
+          <span>＋</span>
+        </button>
+        <button type="button" className={activePage==="messages"?"vibr-dock-item active":"vibr-dock-item"} onClick={()=>openPage("messages")} aria-label="Messages">
+          <span className="vibr-dock-icon">▱</span><span>Inbox</span>
+        </button>
+        <button type="button" className={activePage==="profile"?"vibr-dock-item active":"vibr-dock-item"} onClick={()=>openPage("profile")} aria-label="Profile">
+          <span className="vibr-dock-icon">♙</span><span>Profile</span>
+        </button>
+      </nav>
       <style>{`
         .vibr-mobile-header{display:none}
         .vibr-mobile-scrim{display:none}
+        .vibr-bottom-dock{display:none}
         @media(max-width:900px){
           .vibr-app-shell{display:block!important;padding-top:58px;min-width:0}
           .vibr-mobile-header{height:66px;display:flex;align-items:center;justify-content:flex-start;gap:14px;padding:0 16px;position:fixed;left:0;right:0;top:0;z-index:1002;background:rgba(10,10,10,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
@@ -595,7 +613,13 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
           .vibr-sidebar{display:flex!important;position:fixed!important;z-index:1004!important;left:0!important;top:58px!important;bottom:0!important;width:min(300px,84vw)!important;height:calc(100dvh - 58px)!important;transform:translateX(-105%);transition:transform .24s ease;box-shadow:16px 0 45px rgba(0,0,0,.45);border-right:1px solid var(--border)!important}
           .vibr-sidebar.vibr-sidebar-open{transform:translateX(0)}
           .vibr-mobile-scrim{display:block;position:fixed;inset:58px 0 0;z-index:1003;border:0;background:rgba(0,0,0,.58);padding:0}
-          .vibr-main-content{width:100%;min-width:0!important;max-width:100%;overflow-x:hidden!important}
+          .vibr-main-content{width:100%;min-width:0!important;max-width:100%;overflow-x:hidden!important;padding-bottom:calc(94px + env(safe-area-inset-bottom))!important}
+          .vibr-bottom-dock{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:1001;height:66px;display:grid;grid-template-columns:1fr 1fr 1.15fr 1fr 1fr;align-items:center;padding:5px 8px;background:rgba(17,17,17,.96);border:1px solid rgba(255,255,255,.12);border-radius:20px;box-shadow:0 12px 36px rgba(0,0,0,.5);backdrop-filter:blur(18px)}
+          .vibr-dock-item{height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:0;background:transparent;color:#858585;font-size:9px;letter-spacing:.4px;font-weight:600;cursor:pointer}
+          .vibr-dock-item.active{color:var(--gold)}
+          .vibr-dock-icon{font-size:23px;line-height:25px;color:inherit}
+          .vibr-dock-create{width:54px;height:54px;justify-self:center;align-self:center;border:0;border-radius:18px;background:linear-gradient(145deg,#ffb900,#ff6a00);color:#090909;font-size:38px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 18px rgba(255,117,0,.28);cursor:pointer;transform:translateY(-12px)}
+          .vibr-dock-create span{font-weight:300;margin-top:-3px}
         }
         @media(min-width:901px){.vibr-sidebar{transform:none!important}.vibr-mobile-header,.vibr-mobile-scrim{display:none!important}}
       `}</style>
