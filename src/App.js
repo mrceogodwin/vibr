@@ -1295,7 +1295,7 @@ function InvestorDashboard({navigate,session,profile,onSignOut}){
                     <div style={{display:"flex",gap:6,marginBottom:11,flexWrap:"wrap"}}><span style={{background:"rgba(240,165,0,.1)",border:"1px solid rgba(240,165,0,.3)",fontFamily:"var(--fm)",fontSize:7,padding:"2px 7px",color:"var(--gold)",letterSpacing:1}}>{b.badge}</span><span style={{fontFamily:"var(--fm)",fontSize:7,color:"var(--muted)",padding:"2px 7px",border:"1px solid var(--border)"}}>{b.pts.toLocaleString()} pts</span></div>
                     <div style={{display:"flex",gap:5}}>
                       <button onClick={()=>navigate("messages")} style={{flex:1,padding:"7px",background:"var(--gold)",color:"#000",border:"2px solid var(--gold)",fontFamily:"var(--fd)",fontSize:12,letterSpacing:2,cursor:"pointer",transition:"all .15s"}}>Connect</button>
-                      <button onClick={()=>navigate("profile")} style={{padding:"7px 10px",background:"transparent",border:"2px solid var(--border)",color:"var(--muted)",fontFamily:"var(--fm)",fontSize:8,cursor:"pointer",transition:"all .2s"}} onMouseEnter={e=>{e.target.style.borderColor="var(--gold)";e.target.style.color="var(--gold)";}} onMouseLeave={e=>{e.target.style.borderColor="var(--border)";e.target.style.color="var(--muted)";}}>View</button>
+                      <button onClick={()=>b.id&&navigate(`profile-${b.id}`)} style={{padding:"7px 10px",background:"transparent",border:"2px solid var(--border)",color:"var(--muted)",fontFamily:"var(--fm)",fontSize:8,cursor:"pointer",transition:"all .2s"}} onMouseEnter={e=>{e.target.style.borderColor="var(--gold)";e.target.style.color="var(--gold)";}} onMouseLeave={e=>{e.target.style.borderColor="var(--border)";e.target.style.color="var(--muted)";}}>View</button>
                     </div>
                   </div>
                 ))}
@@ -2286,7 +2286,7 @@ function LeaderboardPage({navigate,returnTo,userRole,session}){
       .then(data=>{
         if(data&&data.length>0){
           setLiveBoard(data.map((p,i)=>({
-            rank:i+1, name:p.full_name||p.username||"Builder",
+            id:p.id, rank:i+1, name:p.full_name||p.username||"Builder",
             handle:p.username||"builder",
             flag:"🌍", badge:p.rank||"Seedling",
             pts:p.vibe_points||0,
@@ -2300,7 +2300,7 @@ function LeaderboardPage({navigate,returnTo,userRole,session}){
   },[]);
 
   const [lbLoading,setLbLoading]=useState(true);
-  useEffect(()=>{setLbLoading(true);getLeaderboard(20).then(data=>{if(data&&data.length>0){setLiveBoard(data.map((p,i)=>({rank:i+1,name:p.full_name||p.username||"Builder",handle:p.username||"builder",flag:"🌍",badge:p.rank||"Seedling",pts:p.vibe_points||0,drops:0,collabs:0,av:(p.username||"B").slice(0,2).toUpperCase(),avc:["gold","red","green"][i%3]})));}}). catch(()=>{}).finally(()=>setLbLoading(false));},[]);
+  useEffect(()=>{setLbLoading(true);getLeaderboard(20).then(data=>{if(data&&data.length>0){setLiveBoard(data.map((p,i)=>({id:p.id,rank:i+1,name:p.full_name||p.username||"Builder",handle:p.username||"builder",flag:"🌍",badge:p.rank||"Seedling",pts:p.vibe_points||0,drops:0,collabs:0,av:(p.username||"B").slice(0,2).toUpperCase(),avc:["gold","red","green"][i%3]})));}}). catch(()=>{}).finally(()=>setLbLoading(false));},[]);
   const board = liveBoard.length>0 ? liveBoard : LEADERBOARD;
   const rC=["var(--gold)","#C0C0C0","#CD7F32"];
   return (
@@ -2315,7 +2315,7 @@ function LeaderboardPage({navigate,returnTo,userRole,session}){
       <div style={{padding:"32px 30px",background:"var(--surface)",borderBottom:"2px solid var(--border)",display:"flex",justifyContent:"center",alignItems:"flex-end",gap:12}}>
         {[LEADERBOARD[1],LEADERBOARD[0],LEADERBOARD[2]].map((b,i)=>{
           const heights=["140px","180px","112px"],places=[2,1,3],medals=["🥈","🥇","🥉"];
-          return <div key={b.name} onClick={()=>navigate("profile")} style={{display:"flex",flexDirection:"column",alignItems:"center",cursor:"pointer",transition:"transform .2s"}} onMouseEnter={e=>e.currentTarget.style.transform="translateY(-7px)"} onMouseLeave={e=>e.currentTarget.style.transform="none"}>
+          return <div key={b.name} onClick={()=>b.id&&navigate(`profile-${b.id}`)} style={{display:"flex",flexDirection:"column",alignItems:"center",cursor:"pointer",transition:"transform .2s"}} onMouseEnter={e=>e.currentTarget.style.transform="translateY(-7px)"} onMouseLeave={e=>e.currentTarget.style.transform="none"}>
             <div style={{fontSize:22,marginBottom:4}}>{medals[i]}</div>
             <Av name={b.av} color={b.avc} size={46}/>
             <div style={{fontFamily:"var(--fd)",fontSize:15,letterSpacing:1,marginTop:6,textAlign:"center"}}>{b.name.split(" ")[0]}</div>
@@ -2334,7 +2334,7 @@ function LeaderboardPage({navigate,returnTo,userRole,session}){
             {["#","BUILDER","BADGE","DROPS","COLLABS","SCORE"].map(h=><div key={h} style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)",letterSpacing:2}}>{h}</div>)}
           </div>
                     {lbLoading&&[1,2,3,4,5].map(n=><SkeletonCard key={n}/>)}
-          {board.map((b,i)=><div key={b.name} onClick={()=>navigate("profile")} style={{display:"grid",gridTemplateColumns:"48px 1fr 105px 72px 72px 85px",padding:"12px 16px",borderBottom:"1px solid var(--border)",transition:"background .15s",cursor:"pointer",animation:`fadeUp .3s ${i*.06}s ease both`}} onMouseEnter={e=>e.currentTarget.style.background="var(--s2)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+          {board.map((b,i)=><div key={b.name} onClick={()=>b.id&&navigate(`profile-${b.id}`)} style={{display:"grid",gridTemplateColumns:"48px 1fr 105px 72px 72px 85px",padding:"12px 16px",borderBottom:"1px solid var(--border)",transition:"background .15s",cursor:"pointer",animation:`fadeUp .3s ${i*.06}s ease both`}} onMouseEnter={e=>e.currentTarget.style.background="var(--s2)"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
             <div style={{fontFamily:"var(--fd)",fontSize:20,color:rC[i]||"var(--muted)",display:"flex",alignItems:"center"}}>{b.rank}</div>
             <div style={{display:"flex",alignItems:"center",gap:8}}><Av name={b.av} color={b.avc} size={32}/><div><div style={{fontWeight:700,fontSize:12}}>{b.name} {b.flag}</div><div style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)"}}>@{b.handle}</div></div></div>
             <div style={{display:"flex",alignItems:"center",fontFamily:"var(--fm)",fontSize:9,color:"var(--muted)"}}>{b.badge}</div>
@@ -2477,41 +2477,64 @@ function MessagesPage({navigate,returnTo,userRole,session}){
 }
 
 // ── PROFILE ───────────────────────────────────────────────────────────────────
-function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile}){
+function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targetProfileId}){
   const [tab,setTab]=useState("projects");
   const [following,setFollowing]=useState(false);
+  const [followBusy,setFollowBusy]=useState(false);
+  const [followerCount,setFollowerCount]=useState(0);
+  const [followingCount,setFollowingCount]=useState(0);
   const [liveProfile,setLiveProfile]=useState(null);
   const [livePosts,setLivePosts]=useState([]);
+  const isOwnProfile=!!session && (!targetProfileId || targetProfileId===session.user.id);
 
   useEffect(()=>{
-    if(!session) return;
-    // Load current user's profile
-    getProfile(session.user.id)
-      .then(p=>setLiveProfile(p))
-      .catch(()=>{});
-    // Load their posts
-    getPosts({limit:10})
-      .then(data=>{
-        const mine = data?.filter(p=>p.author_id===session.user.id)||[];
-        setLivePosts(mine.map(p=>({
-          id:p.id, title:p.title,
-          votes:p.vote_count||0, comments:p.comment_count||0,
-          tags:(p.tags||[]).map(t=>[t,"gold"]),
-          time:new Date(p.created_at).toLocaleDateString(),
-          desc:p.description||"",
-        })));
-      })
-      .catch(()=>{});
-  },[session]);
+    let alive=true;
+    const profileId=targetProfileId || session?.user?.id;
+    setLiveProfile(null); setLivePosts([]); setFollowing(false);
+    if(!profileId) return ()=>{alive=false;};
+    getProfile(profileId).then(p=>{if(alive)setLiveProfile(p);}).catch(()=>{if(alive)setLiveProfile(null);});
+    getPosts({limit:100}).then(data=>{
+      if(!alive)return;
+      const mine=(data||[]).filter(p=>p.author_id===profileId);
+      setLivePosts(mine.map(p=>({id:p.id,title:p.title,votes:p.vote_count||0,comments:p.comment_count||0,tags:(p.tags||[]).map(t=>[t,"gold"]),time:new Date(p.created_at).toLocaleDateString(),desc:p.description||""})));
+    }).catch(()=>{if(alive)setLivePosts([]);});
+    supabase.from("follows").select("id",{count:"exact",head:true}).eq("following_id",profileId)
+      .then(({count})=>{if(alive)setFollowerCount(count||0);}).catch(()=>{});
+    supabase.from("follows").select("id",{count:"exact",head:true}).eq("follower_id",profileId)
+      .then(({count})=>{if(alive)setFollowingCount(count||0);}).catch(()=>{});
+    if(session && session.user.id!==profileId){
+      supabase.from("follows").select("id").eq("follower_id",session.user.id).eq("following_id",profileId).maybeSingle()
+        .then(({data})=>{if(alive)setFollowing(!!data);}).catch(()=>{});
+    }
+    return ()=>{alive=false;};
+  },[session?.user?.id,targetProfileId]);
 
-  const displayProfile = liveProfile||myProfile;
-  const displayName = displayProfile?.full_name||displayProfile?.username||"Your Name";
-  const displayHandle = displayProfile?.username||"yourhandle";
-  const displayCountry = displayProfile?.country||"🌍";
-  const displayBio = displayProfile?.bio||"";
-  const displayAvatar = displayProfile?.avatar_url;
-  const vibePoints = displayProfile?.vibe_points||0;
-  const rank = displayProfile?.rank||"Seedling";
+  const displayProfile=liveProfile||(isOwnProfile?myProfile:null);
+  const displayName=displayProfile?.full_name||displayProfile?.username||"Builder";
+  const displayHandle=displayProfile?.username||"";
+  const displayCountry=displayProfile?.country||"";
+  const displayBio=displayProfile?.bio||"";
+  const displayAvatar=displayProfile?.avatar_url;
+  const vibePoints=displayProfile?.vibe_points||0;
+  const rank=displayProfile?.rank||"Seedling";
+  const skills=Array.isArray(displayProfile?.skills)?displayProfile.skills:[];
+  const toggleFollow=async()=>{
+    if(!session){navigate("account-login");return;}
+    if(!displayProfile?.id||followBusy)return;
+    setFollowBusy(true);
+    try{
+      if(following){
+        const {error}=await supabase.from("follows").delete().eq("follower_id",session.user.id).eq("following_id",displayProfile.id);
+        if(error)throw error;
+        setFollowing(false);setFollowerCount(n=>Math.max(0,n-1));
+      }else{
+        const {error}=await supabase.from("follows").insert({follower_id:session.user.id,following_id:displayProfile.id});
+        if(error)throw error;
+        setFollowing(true);setFollowerCount(n=>n+1);
+      }
+    }catch(e){toast.error(e.message||"Could not update follow status.");}
+    finally{setFollowBusy(false);}
+  };
   const projects=[
     {title:"Agric Supply Chain AI",desc:"AI connects farmers to buyers, skips middlemen",tags:[["AI","gold"],["React Native","red"]],votes:248,time:"2 days ago"},
     {title:"Naira DeFi Wallet",desc:"Non-custodial wallet for Nigerian users",tags:[["Web3","green"],["Solidity","gold"]],votes:189,time:"1 week ago"},
@@ -2540,26 +2563,26 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile}){
             </div>
             <div style={{flex:1,paddingBottom:5}}>
               <div className="vibr-profile-name-row" style={{display:"flex",alignItems:"center",gap:11,marginBottom:3,minWidth:0,flexWrap:"wrap"}}>
-                <div style={{fontFamily:"var(--fd)",fontSize:36,letterSpacing:2,lineHeight:1}}>TOLU KEHINDE</div>
+                <div style={{fontFamily:"var(--fd)",fontSize:36,letterSpacing:2,lineHeight:1}}>{displayName}</div>
                 <div style={{background:"var(--gold)",color:"#000",fontFamily:"var(--fm)",fontSize:9,padding:"3px 10px",letterSpacing:2}}>VIBE LORD 🔥</div>
               </div>
-              <div style={{color:"var(--muted)",fontFamily:"var(--fm)",fontSize:10,letterSpacing:2}}>@tolu_builds · Lagos, Nigeria 🇳🇬</div>
+              <div style={{color:"var(--muted)",fontFamily:"var(--fm)",fontSize:10,letterSpacing:2}}>{displayHandle?`@${displayHandle}`:""}{displayCountry?` · ${displayCountry}`:""}</div>
             </div>
             <div className="vibr-profile-actions" style={{display:"flex",gap:8,paddingBottom:5,flexWrap:"wrap"}}>
-              {session ? (
+              {isOwnProfile ? (
                 <Btn v="primary" onClick={()=>navigate("settings")}>✏️ Edit Profile</Btn>
               ) : (
                 <>
-                  <Btn v={following?"ghost":"primary"} onClick={()=>setFollowing(f=>!f)}>{following?"Following ✓":"Follow"}</Btn>
+                  <Btn v={following?"ghost":"primary"} onClick={toggleFollow} disabled={followBusy}>{followBusy?"PLEASE WAIT…":following?"Following ✓":"Follow"}</Btn>
                   <Btn v="ghost" onClick={()=>navigate("messages")}>💬 Message</Btn>
                 </>
               )}
             </div>
           </div>
-          <p style={{color:"#aaa",fontSize:13,lineHeight:1.8,maxWidth:540,marginBottom:20}}>Building tech for African farmers and small businesses. Vibe coding with React Native + Node.js. Looking for a co-founder on my agritech startup. DM me 🌱</p>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>{["React Native","Node.js","Python","Supabase","TensorFlow","Paystack"].map(s=><span key={s} style={{padding:"4px 11px",background:"var(--s2)",border:"1px solid var(--border)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,color:"var(--muted)"}}>{s}</span>)}</div>
+          {displayBio&&<p style={{color:"#aaa",fontSize:13,lineHeight:1.8,maxWidth:540,marginBottom:20}}>{displayBio}</p>}
+          {skills.length>0&&<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>{skills.map(s=><span key={s} style={{padding:"4px 11px",background:"var(--s2)",border:"1px solid var(--border)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,color:"var(--muted)"}}>{s}</span>)}</div>}
           <div className="vibr-profile-stats" style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:0,marginBottom:32,border:"2px solid var(--border)",overflow:"hidden",minWidth:0}}>
-            {[["3","Projects"],["1.2K","Vibe Score"],["248","Followers"],["12","Following"],["7","Collabs"]].map(([v,l],i)=><div key={l} style={{flex:1,padding:"16px 12px",textAlign:"center",borderRight:i<4?"2px solid var(--border)":"none",background:i===1?"rgba(240,165,0,.05)":"transparent"}}><div style={{fontFamily:"var(--fd)",fontSize:28,color:i===1?"var(--gold)":"var(--white)",lineHeight:1}}>{v}</div><div style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)",letterSpacing:2,textTransform:"uppercase",marginTop:3}}>{l}</div></div>)}
+            {[[String(livePosts.length),"Projects"],[vibePoints.toLocaleString(),"Vibe Score"],[String(followerCount),"Followers"],[String(followingCount),"Following"],["—","Collabs"]].map(([v,l],i)=><div key={l} style={{flex:1,padding:"16px 12px",textAlign:"center",borderRight:i<4?"2px solid var(--border)":"none",background:i===1?"rgba(240,165,0,.05)":"transparent"}}><div style={{fontFamily:"var(--fd)",fontSize:28,color:i===1?"var(--gold)":"var(--white)",lineHeight:1}}>{v}</div><div style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)",letterSpacing:2,textTransform:"uppercase",marginTop:3}}>{l}</div></div>)}
           </div>
           <div className="vibr-profile-tabs" style={{display:"flex",borderBottom:"2px solid var(--border)",marginBottom:26,minWidth:0,overflowX:"auto"}}>
             {["projects","activity","sqvad","collabs","bounties"].map(t=><button key={t} onClick={()=>setTab(t)} style={{padding:"11px 20px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,textTransform:"uppercase",background:"transparent",border:"none",cursor:"pointer",color:tab===t?"var(--white)":"var(--muted)",borderBottom:tab===t?"3px solid var(--red)":"3px solid transparent",marginBottom:-2,transition:"color .15s"}}>{t==="sqvad"?"MY SQUAD":t}</button>)}
@@ -4846,7 +4869,7 @@ export default function App(){
   }, []);
 
   const isPost = page.startsWith("post-");
-  const isHack = page.startsWith("hack-");
+  const isHack = page.startsWith("hack-");\n  const isMemberProfile = page.startsWith("profile-");\n  const targetProfileId = isMemberProfile ? page.slice(8) : null;
   const postId = isPost ? parseInt(page.split("-")[1]) : null;
   const hackId = isHack ? parseInt(page.split("-")[1]) : null;
 
@@ -4908,7 +4931,7 @@ export default function App(){
       {page==="community"            && <CommunityPage    {...shellProps}/>}
       {page==="leaderboard"          && <LeaderboardPage  {...shellProps}/>}
       {page==="messages"             && <MessagesPage     {...shellProps}/>}
-      {page==="profile"              && <ProfilePage      {...shellProps}/>}
+      {(page==="profile"||isMemberProfile) && <ProfilePage {...shellProps} targetProfileId={targetProfileId}/>}
       {page==="drop"                 && <DropPage         {...shellProps}/>}
       {page==="search"               && <SearchPage       {...shellProps}/>}
       {page==="notifications"        && <NotificationsPage {...shellProps}/>}
