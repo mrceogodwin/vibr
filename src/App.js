@@ -77,12 +77,12 @@ button{cursor:pointer;}
 @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(100%);}to{opacity:1;transform:none;}}
 @media(max-width:900px){
-  .vibr-sidebar{display:none!important;}
+  .vibr-sidebar{display:flex!important;position:fixed!important;z-index:1004!important;left:0!important;top:58px!important;bottom:0!important;width:min(300px,84vw)!important;height:calc(100dvh - 58px)!important;transform:translateX(-105%)!important;}
+  .vibr-sidebar.vibr-sidebar-open{transform:translateX(0)!important;}
 }
 @media(max-width:768px){
   /* Keep iOS Safari from zooming the page when any form control receives focus. */
   input:not([type="file"]),textarea,select{font-size:16px!important;}
-  .vibr-sidebar{display:none!important;}
   .vibr-auth-panel{display:none!important;}
   .vibr-auth-grid{grid-template-columns:1fr!important;}
   .vibr-grid-2,.vibr-grid-3{grid-template-columns:1fr!important;}
@@ -346,18 +346,30 @@ function AvatarUpload({userId, currentUrl, onSuccess}){
   const upload = async(e)=>{
     const input=e.target;
     const file=input.files?.[0];
-    if(!file || !userId){if(input)input.value="";return;}
-    if(!file.type?.startsWith("image/")){toast.error("Please choose an image file.");input.value="";return;}
+    if(!file || !userId){if(input)input.value="";if(!userId)toast.error("Sign in again, then upload your photo.");return;}
     if(file.size > 5*1024*1024){toast.error("Image must be under 5MB");input.value="";return;}
     setUploading(true);
     try{
-      const extByType={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif"};
-      const ext=extByType[file.type];
-      if(!ext)throw new Error("Please use a JPG, PNG, WEBP or GIF image.");
-      const path = `avatars/${userId}.${ext}`;
+      let ready=file;
+      const allowed={"image/jpeg":"jpg","image/jpg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif"};
+      if(!allowed[file.type]){
+        const bmp=await createImageBitmap(file);
+        const canvas=document.createElement("canvas");
+        const max=1600;
+        const scale=Math.min(1, max/Math.max(bmp.width,bmp.height));
+        canvas.width=Math.max(1,Math.round(bmp.width*scale));
+        canvas.height=Math.max(1,Math.round(bmp.height*scale));
+        canvas.getContext("2d").drawImage(bmp,0,0,canvas.width,canvas.height);
+        const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.9));
+        if(!blob) throw new Error("Could not read that photo. Use a JPG or PNG.");
+        ready=new File([blob],"avatar.jpg",{type:"image/jpeg"});
+      }
+      const ext=allowed[ready.type]||"jpg";
+      // Storage only allows an object named {user id}.{ext}, at the bucket root.
+      const path=`${userId}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { upsert:true, contentType:file.type, cacheControl:"3600" });
+        .upload(path, ready, { upsert:true, contentType:ready.type, cacheControl:"3600" });
       if(upErr) throw upErr;
       const { data: { publicUrl } } = supabase.storage
         .from("avatars")
@@ -388,7 +400,6 @@ function AvatarUpload({userId, currentUrl, onSuccess}){
       aria-label="Upload profile photo"
       onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();inputRef.current?.click();}}}
       style={{position:"relative",display:"inline-flex",flexShrink:0,cursor:uploading?"wait":"pointer"}}
-      onClick={()=>!uploading&&inputRef.current?.click()}
     >
       <div style={{
         width:86,height:86,borderRadius:0,
@@ -401,9 +412,9 @@ function AvatarUpload({userId, currentUrl, onSuccess}){
           : <span style={{fontFamily:"var(--fd)",fontSize:28,color:"#fff"}}>+</span>
         }
       </div>
-      {uploading&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.65)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:10,fontFamily:"var(--fm)"}}>UPLOADING</div>}
-      <div style={{position:"absolute",bottom:4,right:4,background:"var(--gold)",width:23,height:23,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>✎</div>
-      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={upload} style={{display:"none"}} aria-label="Choose profile photo"/>
+      {uploading&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.65)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:10,fontFamily:"var(--fm)",pointerEvents:"none"}}>UPLOADING</div>}
+      <div style={{position:"absolute",bottom:4,right:4,background:"var(--gold)",width:23,height:23,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,pointerEvents:"none"}}>✎</div>
+      <input ref={inputRef} type="file" accept="image/*" onChange={upload} aria-label="Choose profile photo" style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",fontSize:16}}/>
     </div>
   );
 }
@@ -654,8 +665,8 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
           .vibr-mobile-menu-button span{display:block;width:19px;height:2px;background:var(--white);border-radius:2px}
           .vibr-mobile-brand{display:flex;align-items:center;justify-content:flex-start;cursor:pointer;background:transparent;border:0;padding:0;margin:0;min-width:0;flex:0 1 auto}.vibr-mobile-brand img{display:block;width:clamp(112px,34vw,148px);height:auto;max-height:42px;object-fit:contain;object-position:left center}.vibr-mobile-header-profile{margin-left:auto;flex-shrink:0}
           .vibr-mobile-header-profile{width:38px;height:38px;border:1px solid var(--border);border-radius:50%;background:var(--s2);color:var(--white);font-size:17px}
-          .vibr-sidebar{display:flex!important;position:fixed!important;z-index:1004!important;left:0!important;top:58px!important;bottom:0!important;width:min(300px,84vw)!important;height:calc(100dvh - 58px)!important;transform:translateX(-105%);transition:transform .24s ease;box-shadow:16px 0 45px rgba(0,0,0,.45);border-right:1px solid var(--border)!important}
-          .vibr-sidebar.vibr-sidebar-open{transform:translateX(0)}
+          .vibr-sidebar{display:flex!important;position:fixed!important;z-index:1004!important;left:0!important;top:58px!important;bottom:0!important;width:min(300px,84vw)!important;height:calc(100dvh - 58px)!important;transform:translateX(-105%)!important;transition:transform .24s ease;box-shadow:16px 0 45px rgba(0,0,0,.45);border-right:1px solid var(--border)!important}
+          .vibr-sidebar.vibr-sidebar-open{transform:translateX(0)!important}
           .vibr-mobile-scrim{display:block;position:fixed;inset:58px 0 0;z-index:1003;border:0;background:rgba(0,0,0,.58);padding:0}
           .vibr-main-content{width:100%;min-width:0!important;max-width:100%;overflow-x:hidden!important;padding-bottom:calc(94px + env(safe-area-inset-bottom))!important}
           .vibr-bottom-dock{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:1001;height:66px;display:grid;grid-template-columns:1fr 1fr 1.15fr 1fr 1fr;align-items:center;padding:5px 8px;background:rgba(17,17,17,.96);border:1px solid rgba(255,255,255,.12);border-radius:20px;box-shadow:0 12px 36px rgba(0,0,0,.5);backdrop-filter:blur(18px)}
