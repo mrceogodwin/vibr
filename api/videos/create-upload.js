@@ -51,6 +51,13 @@ module.exports = async function handler(req, res) {
     if (!cloudflareResponse.ok) {
       const details = await cloudflareResponse.text().catch(() => "");
       console.error("Cloudflare Stream upload provisioning failed:", cloudflareResponse.status, details.slice(0, 800));
+      if (cloudflareResponse.status === 429) {
+        res.setHeader("Retry-After", "60");
+        return res.status(429).json({ error: "Video upload capacity is temporarily full. Your VIBR post is safe; please retry the video upload in about a minute." });
+      }
+      if (cloudflareResponse.status === 413) {
+        return res.status(413).json({ error: "This video exceeds the upload or storage capacity currently available for VIBR." });
+      }
       return res.status(502).json({ error: "Cloudflare could not create the video upload. Please retry." });
     }
 
