@@ -122,6 +122,14 @@ export default function LandingPage({ navigate, getPosts }) {
             <div className="vh-feed-head"><span><i/> LIVE FEED <b>|</b></span></div>
             <div className="vh-feed-grid">
               {drops.map((post, index) => <DropCard key={post.id || index} post={post} index={index} onOpen={() => go("feed")}/>)}
+              {!dropsLoading && drops.length > 0 && Array.from({length:Math.max(0,3-drops.length)}).map((_,index) => (
+                <div className="vh-drop-empty-card" key={"invite-"+index}>
+                  <span className="vh-drop-empty-mark">{index===0?"+":"↗"}</span>
+                  <b>{index===0?"YOUR BUILD NEXT?":"FIND YOUR CREW"}</b>
+                  <small>{index===0?"Share your project with the VIBR builder community.":"Meet developers, designers and co-founders across Africa."}</small>
+                  <button onClick={() => go(index===0?"drop":"collabs")}>{index===0?"DROP A BUILD":"EXPLORE COLLABS"} <Arrow/></button>
+                </div>
+              ))}
               {!dropsLoading && drops.length === 0 && (
                 <div className="vh-feed-empty">
                   <b>THE NEXT BIG BUILD COULD BE YOURS.</b>
@@ -312,6 +320,14 @@ const CSS = `
 .vh-drop-votes{margin-left:auto;color:var(--gold);font-family:Arial Narrow,Impact,sans-serif;font-size:11px;white-space:nowrap}
 .vh-drop-title{display:block;font-size:11px;line-height:1.35;margin:9px 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vh-drop-card p{font-size:10px;line-height:1.4;color:#d0d0d0;margin:0 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vh-drop-empty-card{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:7px;min-width:0;padding:8px 13px 5px;border-right:1px solid rgba(255,255,255,.32);color:#fff;background:transparent}
+.vh-drop-empty-card:last-child{border-right:0}
+.vh-drop-empty-mark{display:grid;place-items:center;width:29px;height:29px;border:1px solid rgba(255,255,255,.7);color:var(--gold);font:20px Arial,sans-serif}
+.vh-drop-empty-card>b{font-family:Impact,"Arial Narrow",sans-serif;font-size:12px;letter-spacing:1px;color:#fff}
+.vh-drop-empty-card>small{font-size:10px;line-height:1.4;color:#bdbdbd;max-width:220px}
+.vh-drop-empty-card>button{display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:transparent;color:var(--gold);font:9px Impact,"Arial Narrow",sans-serif;letter-spacing:1.3px;cursor:pointer}
+.vh-drop-empty-card>button:hover{color:#fff}
+
 .vh-drop-tags{display:flex;gap:5px;flex-wrap:wrap}
 .vh-tag-chip{font-family:Arial Narrow,Impact,sans-serif;font-size:8px;letter-spacing:1px;border:1px solid var(--green);color:#70e5a0;padding:2px 6px}
 .vh-tag-chip-1{border-color:var(--gold);color:#ffcf45}
@@ -411,7 +427,7 @@ const CSS = `
 }
 @media(max-width:760px){
   .vh-nav{height:66px;grid-template-columns:1fr auto;padding:0 16px}
-  .vh-brand{font-size:28px}
+  .vh-brand{font-family:"Arial Narrow",Impact,sans-serif!important;font-size:36px!important;font-weight:900!important;letter-spacing:5px!important}
   .vh-menu{display:flex}
   .vh-menu-open span:first-child{transform:translateY(7px) rotate(45deg)}
   .vh-menu-open span:nth-child(2){opacity:0}
@@ -437,6 +453,9 @@ const CSS = `
   .vh-feed-panel{margin-right:16px;padding:9px 10px}
   .vh-feed-head>span{font-size:10px;letter-spacing:2px}.vh-feed-head button{font-size:8px}
   .vh-feed-grid{grid-template-columns:1fr}
+  .vh-drop-empty-card{min-height:94px;border-right:0;border-bottom:1px solid rgba(255,255,255,.22);padding:9px 3px}
+  .vh-drop-empty-card:last-child{border-bottom:0}
+  .vh-drop-empty-card>small{max-width:none}
   .vh-drop-card{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;gap:4px 10px;padding:7px 3px;border-right:0;border-bottom:1px solid rgba(255,255,255,.22)}
   .vh-drop-card:last-child{border-bottom:0}
   .vh-drop-card-top{grid-column:1/3}
@@ -503,7 +522,7 @@ const CSS = `
   }
   .vh-nav:before{left:22.3%}
   .vh-nav:after{right:21.7%}
-  .vh-brand{font-size:38px;letter-spacing:5px;gap:3px}
+  .vh-brand{font-family:"Arial Narrow",Impact,sans-serif!important;font-size:48px!important;font-weight:900!important;letter-spacing:7px!important;gap:3px}
   .vh-brand-v{color:var(--ink)}
   .vh-brand-i{color:var(--red)}
   .vh-brand-b{color:var(--gold)}
@@ -526,7 +545,7 @@ const CSS = `
   }
   .vh-kicker{font-family:Impact,"Arial Narrow",sans-serif;font-size:11px;letter-spacing:2px;padding:8px 14px;margin-bottom:21px}
   .vh-hero h1{
-    width:142%;transform:scaleX(.70);transform-origin:left top;
+    width:100%;transform:none;transform-origin:left top;
     font-family:Impact,"Arial Narrow",Haettenschweiler,sans-serif;
     font-size:clamp(94px,7.5vw,124px);font-weight:900;line-height:.82;
     letter-spacing:-1.8px;
@@ -559,7 +578,7 @@ const CSS = `
   .vh-flag-rail{width:40px}
   .vh-feed-panel{
     width:100%;height:170px;min-height:170px;max-width:none;
-    margin:0;padding:10px 13px 11px;
+    margin-top:-18px;margin-right:0;padding:10px 13px 11px;
     display:flex;flex-direction:column;
     background:rgba(5,7,7,.93);border:1px solid rgba(255,255,255,.9);
   }
