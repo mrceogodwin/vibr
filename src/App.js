@@ -600,6 +600,14 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
         </button>
       </nav>
       <style>{`
+        @media(max-width:900px){
+          .vibr-feed-layout{display:block!important;width:100%!important;max-width:100vw!important;min-width:0!important;overflow-x:clip!important}
+          .vibr-feed-primary{width:100%!important;max-width:100%!important;min-width:0!important;border-right:0!important}
+          .vibr-feed-sidebar{display:none!important}
+          .vibr-feed-primary > div:first-child{padding:14px 16px!important;gap:12px!important}
+          .vibr-feed-primary > div:nth-child(2){padding:0 12px!important;max-width:100%;overflow-x:auto!important}
+          .vibr-feed-primary > div:nth-child(2) button{flex:0 0 auto!important;padding:10px 12px!important}
+        }
         .vibr-mobile-header{display:none}
         .vibr-mobile-scrim{display:none}
         .vibr-bottom-dock{display:none}
@@ -1413,8 +1421,8 @@ function FeedPage({navigate,returnTo,userRole,session}){
 
   return (
     <AppShell navigate={navigate} activePage="feed" returnTo={returnTo} userRole={userRole}>
-      <div style={{display:"flex"}}>
-        <div style={{flex:1,borderRight:"2px solid var(--border)"}}>
+      <div className="vibr-feed-layout" style={{display:"flex",width:"100%",maxWidth:"100%",minWidth:0}}>
+        <div className="vibr-feed-primary" style={{flex:"1 1 0",minWidth:0,borderRight:"2px solid var(--border)"}}>
           <div style={{padding:"18px 26px",borderBottom:"2px solid var(--border)",position:"sticky",top:0,background:"var(--bg)",zIndex:10,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
             <div><div style={{fontFamily:"var(--fd)",fontSize:26,letterSpacing:2}}>LIVE FEED</div><div style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)",letterSpacing:2}}>WHAT AFRICAN BUILDERS ARE DROPPING RIGHT NOW</div></div>
             <button onClick={()=>navigate("drop")} style={{background:"var(--red)",color:"#fff",border:"2px solid var(--red)",padding:"7px 18px",fontFamily:"var(--fd)",fontSize:15,letterSpacing:2,cursor:"pointer",transition:"all .15s"}} onMouseEnter={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.color="var(--red)";}} onMouseLeave={e=>{e.currentTarget.style.background="var(--red)";e.currentTarget.style.color="#fff";}}>+ DROP PROJECT</button>
@@ -1468,7 +1476,7 @@ function FeedPage({navigate,returnTo,userRole,session}){
           ))}
         </div>
         {/* Right sidebar */}
-        <div style={{width:262,padding:"16px 14px",display:"flex",flexDirection:"column",gap:16,height:"100vh",position:"sticky",top:0,overflowY:"auto",flexShrink:0}}>
+        <aside className="vibr-feed-sidebar" style={{width:262,padding:"16px 14px",display:"flex",flexDirection:"column",gap:16,height:"100vh",position:"sticky",top:0,overflowY:"auto",flexShrink:0}}>
           <div style={{background:"var(--surface)",border:"2px solid var(--border)",padding:14}}>
             <div style={{fontFamily:"var(--fd)",fontSize:16,letterSpacing:2,marginBottom:10,display:"flex",alignItems:"center",gap:6}}><span style={{width:6,height:6,background:"var(--gr2)",borderRadius:"50%",display:"inline-block",animation:"pulse 2s infinite"}}/>LIVE NOW</div>
             {[["Lagos Builder Meetup","312"],["Ghana Fintech Hackathon","89"],["African AI Study Group","201"]].map(([t,c])=><div key={t} onClick={()=>navigate("community")} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid var(--border)",cursor:"pointer",transition:"opacity .2s"}} onMouseEnter={e=>e.currentTarget.style.opacity=".7"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}><div style={{fontSize:11,fontWeight:600}}>{t}</div><div style={{fontSize:8,color:"var(--gr2)",fontFamily:"var(--fm)"}}>{c} watching</div></div>)}
@@ -1492,7 +1500,7 @@ function FeedPage({navigate,returnTo,userRole,session}){
             </div>)}
             <button onClick={()=>navigate("leaderboard")} style={{width:"100%",marginTop:8,padding:"7px",background:"transparent",border:"2px solid var(--border)",color:"var(--muted)",fontFamily:"var(--fm)",fontSize:8,letterSpacing:2,cursor:"pointer",textTransform:"uppercase",transition:"all .2s"}} onMouseEnter={e=>{e.target.style.borderColor="var(--gold)";e.target.style.color="var(--gold)";}} onMouseLeave={e=>{e.target.style.borderColor="var(--border)";e.target.style.color="var(--muted)";}}>Full Leaderboard →</button>
           </div>
-        </div>
+        </aside>
       </div>
           <InfiniteScrollSentinel onVisible={loadMore} loading={pageLoading} hasMore={hasMore}/>
     </AppShell>
