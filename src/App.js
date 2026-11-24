@@ -338,49 +338,71 @@ function OfflineBanner(){
 // ── AVATAR UPLOAD ─────────────────────────────────────────────────────────────
 function AvatarUpload({userId, currentUrl, onSuccess}){
   const [uploading,setUploading] = useState(false);
+  const [photoUrl,setPhotoUrl] = useState(currentUrl||"");
   const inputRef = useRef(null);
+  useEffect(()=>{setPhotoUrl(currentUrl||"");},[currentUrl]);
 
   const upload = async(e)=>{
-    const file = e.target.files?.[0];
-    if(!file || !userId) return;
-    if(file.size > 5*1024*1024){ toast.error("Image must be under 5MB"); return; }
+    const input=e.target;
+    const file=input.files?.[0];
+    if(!file || !userId){if(input)input.value="";return;}
+    if(!file.type?.startsWith("image/")){toast.error("Please choose an image file.");input.value="";return;}
+    if(file.size > 5*1024*1024){toast.error("Image must be under 5MB");input.value="";return;}
     setUploading(true);
     try{
-      const ext  = file.name.split('.').pop();
+      const extByType={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif"};
+      const ext=extByType[file.type];
+      if(!ext)throw new Error("Please use a JPG, PNG, WEBP or GIF image.");
       const path = `avatars/${userId}.${ext}`;
       const { error: upErr } = await supabase.storage
-        .from('avatars')
-        .upload(path, file, { upsert:true, contentType:file.type });
+        .from("avatars")
+        .upload(path, file, { upsert:true, contentType:file.type, cacheControl:"3600" });
       if(upErr) throw upErr;
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from("avatars")
         .getPublicUrl(path);
-      await supabase.from('profiles')
+      const {data:updatedProfile,error:profileErr}=await supabase.from("profiles")
         .update({ avatar_url: publicUrl })
-        .eq('id', userId);
+        .eq("id", userId)
+        .select("id")
+        .maybeSingle();
+      if(profileErr)throw profileErr;
+      if(!updatedProfile)throw new Error("Your profile record was not found. Please sign out and sign in again.");
+      const refreshedUrl=`${publicUrl}${publicUrl.includes("?")?"&":"?"}v=${Date.now()}`;
+      setPhotoUrl(refreshedUrl);
       onSuccess?.(publicUrl);
       toast.success("Profile photo updated!");
     }catch(err){
       toast.error(err.message || "Upload failed");
-    }finally{ setUploading(false); }
+    }finally{
+      setUploading(false);
+      input.value="";
+    }
   };
 
   return (
-    <div style={{position:"relative",display:"inline-block",cursor:"pointer"}} onClick={()=>inputRef.current?.click()}>
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label="Upload profile photo"
+      onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();inputRef.current?.click();}}}
+      style={{position:"relative",display:"inline-flex",flexShrink:0,cursor:uploading?"wait":"pointer"}}
+      onClick={()=>!uploading&&inputRef.current?.click()}
+    >
       <div style={{
-        width:72,height:72,borderRadius:"50%",
-        background:currentUrl?"transparent":"var(--red)",
-        overflow:"hidden",border:"2px solid var(--border)",
+        width:86,height:86,borderRadius:0,
+        background:photoUrl?"transparent":"var(--red)",
+        overflow:"hidden",border:"3px solid var(--border)",
         display:"flex",alignItems:"center",justifyContent:"center",
       }}>
-        {currentUrl
-          ? <img src={currentUrl} alt="avatar" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-          : <span style={{fontFamily:"var(--fd)",fontSize:22,color:"#fff"}}>+</span>
+        {photoUrl
+          ? <img src={photoUrl} alt="Profile photo" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+          : <span style={{fontFamily:"var(--fd)",fontSize:28,color:"#fff"}}>+</span>
         }
       </div>
-      {uploading&&<div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(0,0,0,.6)",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{width:18,height:18,border:"2px solid var(--red)",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite"}}/></div>}
-      <div style={{position:"absolute",bottom:0,right:0,background:"var(--gold)",borderRadius:"50%",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11}}>✏️</div>
-      <input ref={inputRef} type="file" accept="image/*" onChange={upload} style={{display:"none"}} aria-label="Upload profile photo"/>
+      {uploading&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.65)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:10,fontFamily:"var(--fm)"}}>UPLOADING</div>}
+      <div style={{position:"absolute",bottom:4,right:4,background:"var(--gold)",width:23,height:23,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>✎</div>
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={upload} style={{display:"none"}} aria-label="Choose profile photo"/>
     </div>
   );
 }
@@ -3027,14 +3049,13 @@ function SettingsPage({navigate,returnTo,userRole,session,profile}){
         </div>
         {tab==="profile"&&(
           <div style={{display:"flex",flexDirection:"column",gap:18}} className="fu">
-            <div style={{display:"flex",gap:16,alignItems:"center",padding:"20px",background:"var(--surface)",border:"2px solid var(--border)",marginBottom:8}}>
-              <div style={{width:72,height:72,background:"var(--red)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--fd)",fontSize:32,color:"#fff"}}>YO</div>
-              <div>
-                <div style={{fontFamily:"var(--fd)",fontSize:22,letterSpacing:1,marginBottom:4}}>YOUR NAME</div>
-                <div style={{fontFamily:"var(--fm)",fontSize:9,color:"var(--muted)",marginBottom:10}}>@yourhandle · 🇳🇬 Nigeria</div>
-                <button style={{background:"transparent",border:"2px solid var(--border)",color:"var(--muted)",padding:"5px 14px",fontFamily:"var(--fm)",fontSize:8,letterSpacing:2,cursor:"pointer",textTransform:"uppercase",transition:"all .2s"}} onMouseEnter={e=>{e.target.style.borderColor="var(--gold)";e.target.style.color="var(--gold)";}} onMouseLeave={e=>{e.target.style.borderColor="var(--border)";e.target.style.color="var(--muted)";}}>Change Photo</button>
-              </div>
+            <div style={{display:"flex",gap:18,alignItems:"center",padding:"20px",background:"var(--surface)",border:"2px solid var(--border)",marginBottom:8,minWidth:0}}>
               <AvatarUpload userId={session?.user?.id} currentUrl={profile?.avatar_url} onSuccess={url=>{toast.success("Photo updated!");}}/>
+              <div style={{minWidth:0}}>
+                <div style={{fontFamily:"var(--fd)",fontSize:22,letterSpacing:1,marginBottom:4}}>{profile?.full_name||"YOUR NAME"}</div>
+                <div style={{fontFamily:"var(--fm)",fontSize:9,color:"var(--muted)",overflowWrap:"anywhere"}}>{profile?.username?@`${profile.username}`:"@yourhandle"} · {profile?.country||"Nigeria"}</div>
+                <div style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--gold)",letterSpacing:1,marginTop:9}}>TAP THE SQUARE TO CHANGE PHOTO</div>
+              </div>
             </div>
             {[["Display Name","Your Name"],["VIBR Handle","yourhandle"],["Email","you@email.com"],["Location","Lagos, Nigeria"],["Website / Portfolio","https://yoursite.com"]].map(([l,ph])=>(
               <div key={l}><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:6,textTransform:"uppercase"}}>{l}</div><input placeholder={ph} style={inp} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/></div>
