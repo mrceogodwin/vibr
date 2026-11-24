@@ -62,6 +62,45 @@ const CSS = `
   --r2:#FF4444;--g2:#FFB800;--gr2:#22A050;--text:#F0EDE4;--muted:#666;
   --fd:'Bebas Neue',sans-serif;--fm:'Space Mono',monospace;--fb:'DM Sans',sans-serif;
 }
+:root[data-vibr-appearance="light"]{
+  color-scheme:light;
+  --bg:#F2F0E9;
+  --surface:#FFFCF6;
+  --s2:#EAE6DC;
+  --border:#D8D1C4;
+  --white:#191813;
+  --red:#C82931;
+  --gold:#A66D08;
+  --green:#176B3D;
+  --r2:#D83A40;
+  --g2:#956000;
+  --gr2:#1A7A47;
+  --text:#29261F;
+  --muted:#777166;
+}
+:root[data-vibr-appearance="light"] body{background:var(--bg);color:var(--text);color-scheme:light;}
+:root[data-vibr-appearance="light"] input,
+:root[data-vibr-appearance="light"] textarea,
+:root[data-vibr-appearance="light"] select{color-scheme:light;}
+:root[data-vibr-appearance="light"] .vibr-mobile-header{
+  background:rgba(255,252,246,.96)!important;
+  border-bottom-color:var(--border)!important;
+  box-shadow:0 5px 22px rgba(38,31,19,.06);
+}
+:root[data-vibr-appearance="light"] .vibr-mobile-menu-button{
+  color:var(--text)!important;border-color:var(--border)!important;
+}
+:root[data-vibr-appearance="light"] .vibr-mobile-menu-button span{background:var(--text)!important;}
+:root[data-vibr-appearance="light"] .vibr-mobile-header-profile{
+  background:var(--s2)!important;border-color:var(--border)!important;color:var(--text)!important;
+}
+:root[data-vibr-appearance="light"] .vibr-bottom-dock{
+  background:rgba(255,252,246,.96)!important;
+  border-color:rgba(61,53,39,.15)!important;
+  box-shadow:0 12px 36px rgba(49,41,25,.15)!important;
+}
+:root[data-vibr-appearance="light"] .vibr-dock-item:not(.active){color:#777166!important;}
+:root[data-vibr-appearance="light"] .vibr-mobile-scrim{background:rgba(36,30,20,.24)!important;}
 html,body,#root{max-width:100%;overflow-x:hidden;}body{background:var(--bg);color:var(--text);font-family:var(--fb);overflow-x:hidden;}
 input,textarea,select,button{font-family:var(--fb);}
 button{cursor:pointer;}
@@ -74,6 +113,63 @@ button{cursor:pointer;}
 .fu{animation:fadeUp .45s ease both;}.fu1{animation:fadeUp .45s .08s ease both;}
 .fu2{animation:fadeUp .45s .16s ease both;}.fu3{animation:fadeUp .45s .24s ease both;}
 
+.vibr-appearance-page{display:flex;flex-direction:column;gap:20px}
+.vibr-appearance-heading{margin-bottom:2px}
+.vibr-appearance-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--gold);font-family:var(--fm);font-size:9px;letter-spacing:2px;text-transform:uppercase}
+.vibr-appearance-kicker:before{content:"";width:7px;height:7px;background:var(--green);border-radius:50%;box-shadow:0 0 0 4px rgba(34,160,80,.12)}
+.vibr-appearance-heading h2{margin:9px 0 5px;font-family:var(--fd);font-size:36px;letter-spacing:1.5px;line-height:1}
+.vibr-appearance-heading h2 span{color:var(--gold)}
+.vibr-appearance-heading p{max-width:560px;color:var(--muted);font-size:12px;line-height:1.7}
+.vibr-appearance-feature{display:flex;align-items:center;justify-content:space-between;gap:22px;padding:23px 24px;border:1px solid var(--border);background:linear-gradient(120deg,var(--surface),var(--s2));box-shadow:0 14px 36px rgba(0,0,0,.08);position:relative;overflow:hidden}
+.vibr-appearance-feature:after{content:"";position:absolute;right:-42px;top:-72px;width:185px;height:185px;border:1px solid rgba(166,109,8,.18);border-radius:50%;box-shadow:0 0 0 18px rgba(166,109,8,.035),0 0 0 38px rgba(166,109,8,.025);pointer-events:none}
+.vibr-appearance-feature-copy{min-width:0;position:relative;z-index:1}
+.vibr-appearance-feature-label{color:var(--muted);font-family:var(--fm);font-size:8px;letter-spacing:2px;text-transform:uppercase}
+.vibr-appearance-feature-copy h3{margin:7px 0 5px;font-family:var(--fd);font-size:29px;font-weight:400;letter-spacing:1.5px}
+.vibr-appearance-feature-copy p{max-width:430px;color:var(--muted);font-size:11px;line-height:1.7}
+.vibr-appearance-switch-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;position:relative;z-index:1}
+.vibr-appearance-switch{width:72px;height:39px;padding:4px;display:flex;align-items:center;justify-content:flex-start;border:1px solid var(--border);border-radius:30px;background:#34332F;cursor:pointer;transition:background .22s,border-color .22s;box-shadow:inset 0 2px 5px rgba(0,0,0,.24)}
+.vibr-appearance-switch.is-light{justify-content:flex-end;background:linear-gradient(135deg,#E9B94F,#C58B17);border-color:#B98420}
+.vibr-appearance-switch-knob{width:29px;height:29px;display:grid;place-items:center;border-radius:50%;background:#F8F6EF;color:#29261F;font-size:14px;box-shadow:0 2px 7px rgba(0,0,0,.24);transition:transform .22s}
+.vibr-appearance-switch-state{color:var(--muted);font-family:var(--fm);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;white-space:nowrap}
+.vibr-skin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.vibr-skin-card{min-width:0;padding:10px;text-align:left;background:var(--surface);border:1px solid var(--border);color:var(--text);cursor:pointer;transition:border-color .18s,transform .18s,box-shadow .18s}
+.vibr-skin-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.09)}
+.vibr-skin-card.active{border:2px solid var(--gold);padding:9px;box-shadow:0 0 0 3px rgba(166,109,8,.09)}
+.vibr-skin-preview{height:128px;display:grid;grid-template-columns:32px 1fr;gap:8px;padding:9px;overflow:hidden}
+.vibr-skin-preview-dark{background:#0C0D0C;border:1px solid #30302B}
+.vibr-skin-preview-light{background:#F2EFE6;border:1px solid #D8D1C4}
+.vibr-skin-preview-side{display:flex;flex-direction:column;gap:7px;padding:5px 4px}
+.vibr-skin-preview-side i{height:5px;border-radius:4px;background:rgba(255,255,255,.2)}
+.vibr-skin-preview-light .vibr-skin-preview-side i{background:#D3CCBE}
+.vibr-skin-preview-side i:first-child{width:90%;background:var(--red)}
+.vibr-skin-preview-main{display:flex;flex-direction:column;gap:7px;min-width:0}
+.vibr-skin-preview-top{height:18px;display:flex;align-items:center;gap:5px;border-bottom:1px solid rgba(255,255,255,.15);padding-bottom:6px}
+.vibr-skin-preview-light .vibr-skin-preview-top{border-color:#D8D1C4}
+.vibr-skin-preview-top b{margin-right:auto;font-family:var(--fd);font-size:11px;letter-spacing:1.5px;color:#F8F5EE}
+.vibr-skin-preview-light .vibr-skin-preview-top b{color:#201E18}
+.vibr-skin-preview-top i{width:5px;height:5px;border-radius:50%;background:#D92B2B}
+.vibr-skin-preview-top i:nth-last-child(1){background:#1A7A3C}
+.vibr-skin-preview-banner{height:34px;background:linear-gradient(100deg,#24231F 0%,#35332A 52%,#A66D08 52%,#B77F16 100%)}
+.vibr-skin-preview-light .vibr-skin-preview-banner{background:linear-gradient(100deg,#E1DACE 0%,#EAE5D9 55%,#D6A844 55%,#B9851E 100%)}
+.vibr-skin-preview-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;flex:1}
+.vibr-skin-preview-cards i{display:block;border:1px solid rgba(255,255,255,.12);background:#181A18}
+.vibr-skin-preview-light .vibr-skin-preview-cards i{border-color:#D8D1C4;background:#FFFCF6}
+.vibr-skin-card-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 3px 2px}
+.vibr-skin-card-meta b{font-family:var(--fd);font-size:16px;font-weight:400;letter-spacing:1px}
+.vibr-skin-card-meta small{color:var(--muted);font-family:var(--fm);font-size:8px;letter-spacing:1px}
+.vibr-skin-card.active .vibr-skin-card-meta small{color:var(--green)}
+.vibr-appearance-note{padding:12px 14px;border-left:3px solid var(--green);background:rgba(34,160,80,.07);color:var(--muted);font-size:10px;line-height:1.65}
+:root[data-vibr-appearance="light"] .vibr-appearance-feature{box-shadow:0 14px 36px rgba(48,38,20,.07)}
+:root[data-vibr-appearance="light"] .vibr-appearance-feature:after{border-color:rgba(166,109,8,.22)}
+@media(max-width:600px){
+  .vibr-appearance-feature{align-items:flex-start;padding:18px;gap:14px}
+  .vibr-appearance-feature-copy h3{font-size:25px}
+  .vibr-appearance-switch{width:64px;height:36px}
+  .vibr-appearance-switch-knob{width:26px;height:26px}
+  .vibr-skin-grid{gap:9px}
+  .vibr-skin-preview{height:100px;grid-template-columns:25px 1fr;gap:6px;padding:7px}
+  .vibr-skin-card-meta{align-items:flex-start;flex-direction:column;gap:4px}
+}
 @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 @keyframes slideInRight{from{opacity:0;transform:translateX(100%);}to{opacity:1;transform:none;}}
 @media(max-width:900px){
@@ -3035,7 +3131,7 @@ function NotificationsPage({navigate,returnTo,userRole,session}){
 }
 
 // ── SETTINGS PAGE ─────────────────────────────────────────────────────────────
-function SettingsPage({navigate,returnTo,userRole,session,profile}){
+function SettingsPage({navigate,returnTo,userRole,session,profile,appearance="dark",setAppearance=()=>{}}){
   const [tab,setTab]=useState("profile");
   const [saved,setSaved]=useState(false);
   const [tog,setTog]=useState({emailNotifs:true,pushNotifs:true,collabRequests:true,weeklyDigest:false,showEmail:false,showLocation:true,publicProfile:true,whatsapp:true,twoFA:false});
@@ -3070,10 +3166,10 @@ function SettingsPage({navigate,returnTo,userRole,session,profile}){
   };
   return (
     <AppShell navigate={navigate} activePage="settings" returnTo={returnTo} userRole={userRole}>
-      <div style={{maxWidth:660,margin:"0 auto",padding:"28px 28px 64px"}}>
+      <div style={{maxWidth:tab==="appearance"?820:660,margin:"0 auto",padding:"28px clamp(16px,3vw,28px) 64px",transition:"max-width .2s"}}>
         <div style={{fontFamily:"var(--fd)",fontSize:32,letterSpacing:2,marginBottom:22}}>SETTINGS</div>
-        <div style={{display:"flex",gap:0,borderBottom:"2px solid var(--border)",marginBottom:28}}>
-          {["profile","notifications","privacy","payments","danger"].map(t=><button key={t} onClick={()=>setTab(t)} style={{padding:"10px 18px",fontFamily:"var(--fm)",fontSize:8,letterSpacing:2,textTransform:"uppercase",background:"transparent",border:"none",cursor:"pointer",color:tab===t?"var(--white)":"var(--muted)",borderBottom:tab===t?"3px solid var(--red)":"3px solid transparent",marginBottom:-2,transition:"all .15s"}}>{t}</button>)}
+        <div role="tablist" aria-label="Settings sections" style={{display:"flex",gap:0,borderBottom:"2px solid var(--border)",marginBottom:28,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+          {["profile","appearance","notifications","privacy","payments","danger"].map(t=><button type="button" role="tab" aria-selected={tab===t} key={t} onClick={()=>setTab(t)} style={{flex:"0 0 auto",padding:"10px 16px",fontFamily:"var(--fm)",fontSize:8,letterSpacing:2,textTransform:"uppercase",background:"transparent",border:"none",cursor:"pointer",color:tab===t?"var(--white)":"var(--muted)",borderBottom:tab===t?"3px solid var(--red)":"3px solid transparent",marginBottom:-2,transition:"all .15s"}}>{t}</button>)}
         </div>
         {tab==="profile"&&(
           <div style={{display:"flex",flexDirection:"column",gap:18}} className="fu">
@@ -3097,6 +3193,46 @@ function SettingsPage({navigate,returnTo,userRole,session,profile}){
             <button onClick={save} style={{background:saved?"var(--green)":"var(--red)",color:"#fff",border:`2px solid ${saved?"var(--green)":"var(--red)"}`,padding:"13px",fontFamily:"var(--fd)",fontSize:19,letterSpacing:3,cursor:"pointer",transition:"all .3s",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
               {saved?"✓ SAVED!":"SAVE CHANGES"}
             </button>
+          </div>
+        )}
+        {tab==="appearance"&&(
+          <div className="vibr-appearance-page fu">
+            <div className="vibr-appearance-heading">
+              <span className="vibr-appearance-kicker">PERSONALISE YOUR WORKSPACE</span>
+              <h2>YOUR VIBR. <span>YOUR LOOK.</span></h2>
+              <p>Give your workspace the finish you prefer. Your choice is saved on this device and stays active when you return.</p>
+            </div>
+            <section className="vibr-appearance-feature">
+              <div className="vibr-appearance-feature-copy">
+                <div className="vibr-appearance-feature-label">CURRENT APPEARANCE</div>
+                <h3>{appearance==="light"?"IVORY LIGHT":"OBSIDIAN DARK"}</h3>
+                <p>{appearance==="light"?"A warm, off-white canvas with soft cream surfaces, crisp borders and VIBR's signature red, gold and green accents.":"The original VIBR dark workspace: deep charcoal surfaces, high-contrast typography and the signature red, gold and green accents."}</p>
+              </div>
+              <div className="vibr-appearance-switch-wrap">
+                <span className="vibr-appearance-feature-label">LIGHT SKIN</span>
+                <button type="button" role="switch" aria-label="Toggle VIBR light skin" aria-checked={appearance==="light"} className={"vibr-appearance-switch"+(appearance==="light"?" is-light":"")} onClick={()=>setAppearance(appearance==="light"?"dark":"light")}>
+                  <span className="vibr-appearance-switch-knob">{appearance==="light"?"☼":"◐"}</span>
+                </button>
+                <span className="vibr-appearance-switch-state">{appearance==="light"?"ON · IVORY ACTIVE":"OFF · OBSIDIAN ACTIVE"}</span>
+              </div>
+            </section>
+            <div className="vibr-skin-grid" role="group" aria-label="Choose a VIBR appearance">
+              <button type="button" className={"vibr-skin-card"+(appearance==="dark"?" active":"")} aria-pressed={appearance==="dark"} onClick={()=>setAppearance("dark")}>
+                <div className="vibr-skin-preview vibr-skin-preview-dark">
+                  <div className="vibr-skin-preview-side"><i/><i/><i/><i/><i/></div>
+                  <div className="vibr-skin-preview-main"><div className="vibr-skin-preview-top"><b>VIBR.</b><i/><i/><i/></div><div className="vibr-skin-preview-banner"/><div className="vibr-skin-preview-cards"><i/><i/><i/></div></div>
+                </div>
+                <div className="vibr-skin-card-meta"><b>OBSIDIAN DARK</b><small>{appearance==="dark"?"✓ ACTIVE SKIN":"ORIGINAL VIBR SKIN"}</small></div>
+              </button>
+              <button type="button" className={"vibr-skin-card"+(appearance==="light"?" active":"")} aria-pressed={appearance==="light"} onClick={()=>setAppearance("light")}>
+                <div className="vibr-skin-preview vibr-skin-preview-light">
+                  <div className="vibr-skin-preview-side"><i/><i/><i/><i/><i/></div>
+                  <div className="vibr-skin-preview-main"><div className="vibr-skin-preview-top"><b>VIBR.</b><i/><i/><i/></div><div className="vibr-skin-preview-banner"/><div className="vibr-skin-preview-cards"><i/><i/><i/></div></div>
+                </div>
+                <div className="vibr-skin-card-meta"><b>IVORY LIGHT</b><small>{appearance==="light"?"✓ ACTIVE SKIN":"PREMIUM LIGHT SKIN"}</small></div>
+              </button>
+            </div>
+            <div className="vibr-appearance-note">Your appearance preference only changes the visual theme. Your account, projects, messages and profile data remain unchanged. You can switch back to Obsidian Dark at any time.</div>
           </div>
         )}
         {tab==="notifications"&&(
@@ -4812,6 +4948,16 @@ function ForgotPasswordPage({navigate}){
 }
 
 export default function App(){
+  // ── Persisted appearance preference (dark remains the default) ─────────────
+  const [appearance,setAppearance] = useState(()=>{
+    try{return window.localStorage.getItem("vibr-appearance")==="light"?"light":"dark";}
+    catch{return "dark";}
+  });
+  useEffect(()=>{
+    document.documentElement.setAttribute("data-vibr-appearance",appearance);
+    try{window.localStorage.setItem("vibr-appearance",appearance);}catch{}
+  },[appearance]);
+
   // ── Auth state ────────────────────────────────────────────────────────────
   const [session,setSession]   = useState(null);   // Supabase session object
   const [profile,setProfile]   = useState(null);   // profiles row
@@ -4945,7 +5091,7 @@ export default function App(){
 
   // Props shared across all pages
   const sharedAuth = { session, profile, onSignOut: handleSignOut };
-  const shellProps  = { navigate, returnTo, userRole, ...sharedAuth };
+  const shellProps  = { navigate, returnTo, userRole, ...sharedAuth, appearance, setAppearance };
 
   // ── Loading screen ────────────────────────────────────────────────────────
   if(authLoading) return (
