@@ -52,11 +52,19 @@ CREATE INDEX IF NOT EXISTS idx_posts_video_asset_id
 ALTER TABLE public.video_assets ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Owners and public ready videos can read video assets" ON public.video_assets;
-CREATE POLICY "Owners and public ready videos can read video assets"
+DROP POLICY IF EXISTS "Owners and attached posts can read video status" ON public.video_assets;
+CREATE POLICY "Owners and attached posts can read video status"
   ON public.video_assets
   FOR SELECT
   TO public
-  USING (auth.uid() = author_id OR status = 'ready');
+  USING (
+    auth.uid() = author_id
+    OR EXISTS (
+      SELECT 1
+      FROM public.posts p
+      WHERE p.video_asset_id = video_assets.id
+    )
+  );
 
 -- No client INSERT, UPDATE, or DELETE policies are intentionally created.
 -- All writes are performed by authenticated server endpoints using the service role.
@@ -95,3 +103,52 @@ CREATE TRIGGER trg_posts_validate_video_asset_owner
 
 COMMENT ON TABLE public.video_assets IS
   'VIBR video metadata and Cloudflare Stream processing state; video bytes are stored and delivered by Cloudflare Stream.';
+
+
+-- Atomically enforce an active-upload ceiling per builder. Advisory transaction
+-- locks prevent two simultaneous requests from passing a non-atomic COUNT check.
+CREATE OR REPLACE FUNCTION public.reserve_video_asset(
+  p_author_id UUID,
+  p_stream_uid TEXT,
+  p_original_filename TEXT,
+  p_mime_type TEXT,
+  p_file_size_bytes BIGINT,
+  p_duration_seconds NUMERIC,
+  p_iframe_url TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  active_count INTEGER;
+  new_asset_id UUID;
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtextextended(p_author_id::TEXT, 0));
+
+  SELECT COUNT(*) INTO active_count
+  FROM public.video_assets
+  WHERE author_id = p_author_id
+    AND status IN ('uploading', 'processing')
+    AND created_at >= NOW() - INTERVAL '12 hours';
+
+  IF active_count >= 3 THEN
+    RAISE EXCEPTION 'upload_limit_exceeded';
+  END IF;
+
+  INSERT INTO public.video_assets (
+    author_id, stream_uid, original_filename, mime_type,
+    file_size_bytes, duration_seconds, status, iframe_url
+  ) VALUES (
+    p_author_id, p_stream_uid, p_original_filename, p_mime_type,
+    p_file_size_bytes, p_duration_seconds, 'uploading', p_iframe_url
+  )
+  RETURNING id INTO new_asset_id;
+
+  RETURN new_asset_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.reserve_video_asset(UUID, TEXT, TEXT, TEXT, BIGINT, NUMERIC, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.reserve_video_asset(UUID, TEXT, TEXT, TEXT, BIGINT, NUMERIC, TEXT) TO service_role;
