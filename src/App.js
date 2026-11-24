@@ -4737,51 +4737,73 @@ export default function App(){
     "premium","spaces","hackathons","companies"
   ]);
 
-  // ── Session persistence — runs once on mount ──────────────────────────────
+  // ── Session persistence and immediate post-login routing ───────────────────
   useEffect(()=>{
-    // Resolve current session from Supabase cache
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if(session){
-        setSession(session);
-        const role = session.user.user_metadata?.role || "builder";
-        setUserRole(role);
-        getProfile(session.user.id)
-          .then(p => setProfile(p))
-          .catch(() => {});
-        // Route to correct dashboard
-        setPage(
-          role === "investor" ? "investor-dashboard" :
-          role === "company"  ? "company-dashboard"  : "feed"
-        );
-      }
-      setAuthLoading(false);
-    });
+    let alive = true;
 
-    // Listen for auth state changes (login, logout, token refresh)
+    // Subscribe before resolving the cached session so a fresh sign-in cannot
+    // be missed while the initial session lookup is still in flight.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        if(event === "SIGNED_IN" && newSession){
-          setSession(newSession);
+      (event, newSession) => {
+        if (!alive) return;
+
+        if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && newSession) {
           const role = newSession.user.user_metadata?.role || "builder";
+          setSession(newSession);
           setUserRole(role);
-          try {
-            const p = await getProfile(newSession.user.id);
-            setProfile(p);
-          } catch {}
+          setPage(
+            role === "investor" ? "investor-dashboard" :
+            role === "company" ? "company-dashboard" : "feed"
+          );
+          setAuthLoading(false);
+
+          // Do not await Supabase queries inside onAuthStateChange. Doing so
+          // can block Supabase's auth lock and leave the UI waiting until reload.
+          Promise.resolve().then(() => getProfile(newSession.user.id))
+            .then(p => { if (alive) setProfile(p); })
+            .catch(() => { if (alive) setProfile(null); });
         }
-        if(event === "SIGNED_OUT"){
+
+        if (event === "SIGNED_OUT") {
           setSession(null);
           setProfile(null);
           setUserRole("builder");
           setPage("landing");
+          setAuthLoading(false);
         }
-        if(event === "PASSWORD_RECOVERY"){
+
+        if (event === "PASSWORD_RECOVERY") {
           setPage("forgot-password");
+          setAuthLoading(false);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data: { session: currentSession }, error }) => {
+      if (!alive) return;
+      if (error) {
+        setAuthLoading(false);
+        return;
+      }
+      if (currentSession) {
+        const role = currentSession.user.user_metadata?.role || "builder";
+        setSession(currentSession);
+        setUserRole(role);
+        setPage(
+          role === "investor" ? "investor-dashboard" :
+          role === "company" ? "company-dashboard" : "feed"
+        );
+        Promise.resolve().then(() => getProfile(currentSession.user.id))
+          .then(p => { if (alive) setProfile(p); })
+          .catch(() => { if (alive) setProfile(null); });
+      }
+      setAuthLoading(false);
+    }).catch(() => { if (alive) setAuthLoading(false); });
+
+    return () => {
+      alive = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // ── navigate() ───────────────────────────────────────────────────────────
