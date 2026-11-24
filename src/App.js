@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import * as tus from "tus-js-client";
 import LandingPage from "./HomePage";
 
 // ── SUPABASE CLIENT ──────────────────────────────────────────────────────────
@@ -38,13 +39,15 @@ const signOut=async()=>{ const {error}=await supabase.auth.signOut(); if(error)t
 const resetPassword=async(email)=>{ const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${window.location.origin}/reset-password`}); if(error)throw error; };
 const getProfile=async(userId)=>{ const {data,error}=await supabase.from('profiles').select('*').eq('id',userId).single(); if(error)throw error; return data; };
 const getPosts=async({limit=20,offset=0}={})=>{
-  let result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title),votes:votes(id),comments:comments(id)').order('created_at',{ascending:false}).range(offset,offset+limit-1);
-  // Keep the existing feed usable until the additive series migration is applied.
+  let result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title),video_asset:video_assets!posts_video_asset_id_fkey(status,thumbnail_url),votes:votes(id),comments:comments(id)').order('created_at',{ascending:false}).range(offset,offset+limit-1);
+  // Keep existing feeds readable while the Cloudflare video-assets migration is being applied.
+  if(result.error)result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title),votes:votes(id),comments:comments(id)').order('created_at',{ascending:false}).range(offset,offset+limit-1);
   if(result.error)result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),votes:votes(id),comments:comments(id)').order('created_at',{ascending:false}).range(offset,offset+limit-1);
   if(result.error)throw result.error;return result.data;
 };
 const getPostDetail=async(postId)=>{
-  let result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title,description)').eq('id',postId).single();
+  let result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title,description),video_asset:video_assets!posts_video_asset_id_fkey(status,thumbnail_url)').eq('id',postId).single();
+  if(result.error)result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role),series:project_series(id,title,description)').eq('id',postId).single();
   if(result.error)result=await supabase.from('posts').select('*,profiles:author_id(id,username,full_name,avatar_url,country,role)').eq('id',postId).single();
   if(result.error)throw result.error;return result.data;
 };
@@ -1623,7 +1626,7 @@ function FeedPage({navigate,returnTo,userRole,session}){
   // Paginated feed using usePagination hook
   const mapPost = p=>({
     id:p.id, authorId:p.author_id, author_id:p.author_id, title:p.title,
-    mediaUrl:p.media_url||"", mediaType:p.media_type||"", seriesId:p.series_id||null,
+    mediaUrl:p.media_url||"", mediaType:p.media_type||"", videoStatus:p.video_asset?.status||null, seriesId:p.series_id||null,
     seriesTitle:p.series?.title||"", episodeNumber:p.episode_number||null,
     episodeTitle:p.episode_title||"",
     name:p.profiles?.full_name||p.profiles?.username||"Builder",
@@ -1694,7 +1697,8 @@ function FeedPage({navigate,returnTo,userRole,session}){
                   </div>
                   <div style={{fontFamily:"var(--fd)",fontSize:18,letterSpacing:1,marginBottom:5,lineHeight:1.2,cursor:"pointer"}} onClick={()=>navigate(`post-${post.id}`)}>{post.title}</div>
                   <p style={{color:"#999",fontSize:12,lineHeight:1.6,marginBottom:9}}>{post.desc}</p>
-                  {post.mediaUrl&&post.mediaType.startsWith("video/")&&<video src={post.mediaUrl} controls playsInline preload="metadata" style={{width:"100%",maxHeight:330,background:"#000",display:"block",marginBottom:12,border:"1px solid var(--border)"}} aria-label={"Project video: "+post.title}/>}
+                  {post.mediaUrl&&post.mediaType==="video/cloudflare"&&(post.videoStatus==="ready"?<CloudflareStreamFrame src={post.mediaUrl} title={"Project video: "+post.title} compact/>:<CloudflareProcessingCard title={post.title}/>)}
+                  {post.mediaUrl&&post.mediaType.startsWith("video/")&&post.mediaType!=="video/cloudflare"&&<video src={post.mediaUrl} controls playsInline preload="metadata" style={{width:"100%",maxHeight:330,background:"#000",display:"block",marginBottom:12,border:"1px solid var(--border)"}} aria-label={"Project video: "+post.title}/>}
                   <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
                     {post.tags.map(([t,c])=><Tag key={t} label={t} color={c}/>)}
                     {post.seriesId&&<Tag label={"SERIES · "+(post.episodeTitle||("EPISODE "+post.episodeNumber))} color="green"/>}
@@ -1831,7 +1835,8 @@ function PostDetailPage({postId,navigate,returnTo,userRole,session}){
             </div>
             <div style={{fontFamily:"var(--fd)",fontSize:30,letterSpacing:1,lineHeight:1.1,marginBottom:11}}>{post.title}</div>
             <p style={{color:"var(--text)",fontSize:14,lineHeight:1.8,marginBottom:14,whiteSpace:"pre-wrap"}}>{post.desc}</p>
-            {post.media_url&&post.media_type?.startsWith("video/")&&<video src={post.media_url} controls playsInline preload="metadata" style={{width:"100%",maxHeight:520,background:"#000",display:"block",margin:"16px 0",border:"1px solid var(--border)"}} aria-label={"Project update video: "+post.title}/>}
+            {post.media_url&&post.media_type==="video/cloudflare"&&(post.video_asset?.status==="ready"?<CloudflareStreamFrame src={post.media_url} title={"Project update video: "+post.title}/>:<CloudflareProcessingCard title={post.title}/>)}
+            {post.media_url&&post.media_type?.startsWith("video/")&&post.media_type!=="video/cloudflare"&&<video src={post.media_url} controls playsInline preload="metadata" style={{width:"100%",maxHeight:520,background:"#000",display:"block",margin:"16px 0",border:"1px solid var(--border)"}} aria-label={"Project update video: "+post.title}/>}
             {post.demo_url&&<p style={{fontSize:12,marginBottom:9}}><a href={post.demo_url} target="_blank" rel="noreferrer" style={{color:"var(--green)"}}>↗ LIVE DEMO</a></p>}
             {post.github_url&&<p style={{fontSize:12,marginBottom:9}}><a href={post.github_url} target="_blank" rel="noreferrer" style={{color:"var(--gold)"}}>↗ GITHUB REPOSITORY</a></p>}
             <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>{(post.tags||[]).map(([t,col])=><Tag key={t} label={t} color={col}/>)}</div>
@@ -2877,6 +2882,44 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
   );
 }
 
+const getLocalVideoDuration=(file)=>new Promise((resolve,reject)=>{
+  const url=URL.createObjectURL(file);
+  const video=document.createElement("video");
+  video.preload="metadata";
+  video.onloadedmetadata=()=>{
+    const duration=video.duration;
+    URL.revokeObjectURL(url);
+    if(!Number.isFinite(duration)||duration<=0){reject(new Error("The video duration could not be read."));return;}
+    resolve(duration);
+  };
+  video.onerror=()=>{
+    URL.revokeObjectURL(url);
+    reject(new Error("This video could not be read by your browser. Try an MP4 or MOV file."));
+  };
+  video.src=url;
+});
+
+function CloudflareStreamFrame({src,title,compact=false}){
+  if(!src)return null;
+  return <iframe
+    src={src}
+    title={title||"VIBR project video"}
+    loading="lazy"
+    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+    allowFullScreen
+    referrerPolicy="strict-origin-when-cross-origin"
+    style={{width:"100%",aspectRatio:"16 / 9",maxHeight:compact?330:520,border:0,background:"#000",display:"block",margin:compact?"0 0 12px":"16px 0",borderRadius:0}}
+  />;
+}
+
+function CloudflareProcessingCard({title}){
+  return <div role="status" style={{width:"100%",aspectRatio:"16 / 9",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:9,background:"var(--s2)",border:"1px solid var(--border)",margin:"12px 0",color:"var(--muted)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1}}>
+    <span style={{fontSize:24}}>◌</span>
+    <b>PREPARING VIDEO</b>
+    <span style={{fontSize:8,letterSpacing:.3}}>Your video will play here as soon as processing is complete.</span>
+  </div>;
+}
+
 // ── DROP ──────────────────────────────────────────────────────────────────────
 
 function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
@@ -2896,6 +2939,8 @@ function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
   const [createdPostId,setCreatedPostId]=useState(null);
   const [createdSeriesId,setCreatedSeriesId]=useState(null);
   const [uploading,setUploading]=useState(false);
+  const [uploadProgress,setUploadProgress]=useState(0);
+  const [mediaDuration,setMediaDuration]=useState(null);
   const update=(k,v)=>setForm(f=>({...f,[k]:v}));
   const inp={width:"100%",padding:"11px 13px",background:"var(--s2)",border:"2px solid var(--border)",color:"var(--text)",fontSize:13,outline:"none",fontFamily:"var(--fb)",transition:"border-color .2s",borderRadius:0};
 
@@ -2911,19 +2956,27 @@ function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
 
   useEffect(()=>()=>{if(mediaPreview)URL.revokeObjectURL(mediaPreview);},[mediaPreview]);
 
-  const selectVideo=e=>{
+  const selectVideo=async e=>{
     const file=e.target.files?.[0];
     e.target.value="";
     if(!file)return;
-    const allowed=["video/mp4","video/quicktime","video/webm","video/x-m4v"];
-    if(!allowed.includes(file.type)){toast.error("Choose an MP4, MOV or WebM video.");return;}
-    if(file.size>50*1024*1024){toast.error("Videos must be 50 MB or smaller.");return;}
-    setMediaFile(file);
-    setMediaPreview(URL.createObjectURL(file));
+    if(file.type&&!file.type.startsWith("video/")){toast.error("Choose a valid video file.");return;}
+    const maxBytes=30*1024*1024*1024;
+    if(file.size>maxBytes){toast.error("This video is larger than Cloudflare Stream's default 30 GB upload limit.");return;}
+    try{
+      const duration=await getLocalVideoDuration(file);
+      if(duration>3600){toast.error("Videos must be one hour or shorter.");return;}
+      setMediaDuration(duration);
+      setMediaFile(file);
+      setMediaPreview(URL.createObjectURL(file));
+      setUploadProgress(0);
+    }catch(error){
+      toast.error(error?.message||"This video could not be read. Try an MP4 or MOV file.");
+    }
   };
 
   const resetDrop=()=>{
-    setDropped(false);setDropping(false);setUploading(false);
+    setDropped(false);setDropping(false);setUploading(false);setUploadProgress(0);setMediaDuration(null);
     setForm({title:"",desc:"",collab:false,open:false,bounty:false,demoUrl:"",githubUrl:""});
     setTags([]);setNeeds([]);setMediaFile(null);setMediaPreview("");
     setSeriesMode("none");setSeriesTitle("");setSeriesDescription("");setEpisodeTitle("");
@@ -2936,7 +2989,7 @@ function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
     if(seriesMode==="new"&&!seriesTitle.trim()){toast.error("Give your project series a title.");return;}
     if(seriesMode==="existing"&&!selectedSeriesId){toast.error("Choose the project series you want to continue.");return;}
     setDropping(true);
-    let createdSeries=null,uploadedPath=null;
+    let createdSeries=null,videoAsset=null,accessToken=null;
     try{
       let seriesId=seriesMode==="existing"?selectedSeriesId:null;
       if(seriesMode==="new"){
@@ -2956,28 +3009,64 @@ function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
       }
       let mediaUrl=null,mediaType=null;
       if(mediaFile){
-        setUploading(true);
-        const extension=(mediaFile.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";
-        uploadedPath=session.user.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"."+extension;
-        const {error:uploadError}=await supabase.storage.from("project-videos").upload(uploadedPath,mediaFile,{
-          cacheControl:"3600",upsert:false,contentType:mediaFile.type
+        setUploading(true);setUploadProgress(0);
+        if(!mediaDuration)throw new Error("VIBR could not read this video's duration. Please choose the file again.");
+        const {data:authData,error:authError}=await supabase.auth.getSession();
+        if(authError)throw authError;
+        accessToken=authData?.session?.access_token;
+        if(!accessToken)throw new Error("Your session has expired. Sign in again before uploading.");
+
+        const provisionResponse=await fetch("/api/videos/create-upload",{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Authorization":"Bearer "+accessToken},
+          body:JSON.stringify({
+            fileName:mediaFile.name,
+            fileSize:mediaFile.size,
+            mimeType:mediaFile.type||"video/mp4",
+            durationSeconds:mediaDuration
+          })
         });
-        if(uploadError)throw uploadError;
-        mediaUrl=supabase.storage.from("project-videos").getPublicUrl(uploadedPath).data.publicUrl;
-        mediaType=mediaFile.type;
+        const provisionPayload=await provisionResponse.json().catch(()=>({}));
+        if(!provisionResponse.ok)throw new Error(provisionPayload.error||"VIBR could not start the video upload.");
+
+        videoAsset=provisionPayload;
+        await new Promise((resolve,reject)=>{
+          const uploader=new tus.Upload(mediaFile,{
+            uploadUrl:videoAsset.uploadUrl,
+            chunkSize:50*1024*1024,
+            retryDelays:[0,1000,3000,5000,10000,20000,30000],
+            onError:error=>reject(error),
+            onProgress:(bytesUploaded,bytesTotal)=>{
+              setUploadProgress(bytesTotal?Math.min(100,Math.floor(bytesUploaded/bytesTotal*100)):0);
+            },
+            onSuccess:()=>resolve()
+          });
+          uploader.start();
+        });
+
+        const completeResponse=await fetch("/api/videos/complete-upload",{
+          method:"POST",
+          headers:{"Content-Type":"application/json","Authorization":"Bearer "+accessToken},
+          body:JSON.stringify({assetId:videoAsset.assetId})
+        });
+        const completePayload=await completeResponse.json().catch(()=>({}));
+        if(!completeResponse.ok)throw new Error(completePayload.error||"The upload completed, but VIBR could not confirm it.");
+        mediaUrl=videoAsset.iframeUrl;
+        mediaType="video/cloudflare";
+        setUploadProgress(100);
         setUploading(false);
       }
       const postPayload={
         author_id:session.user.id,title:form.title.trim(),description:form.desc.trim(),
         tags,open_source:form.open,open_collab:form.collab,has_bounty:form.bounty,
         demo_url:form.demoUrl.trim()||null,github_url:form.githubUrl.trim()||null,
-        media_url:mediaUrl,media_type:mediaType,series_id:seriesId,
+        media_url:mediaUrl,media_type:mediaType,video_asset_id:videoAsset?.assetId||null,series_id:seriesId,
         episode_number:episodeNumber,episode_title:seriesId?(episodeTitle.trim()||("Week "+episodeNumber)):null
       };
       let {data,error}=await supabase.from("posts").insert(postPayload).select().single();
-      // Standard one-time Drops keep working if the additive video/series SQL has not been run yet.
+      const missingVideoSchema=error&&/video_asset_id|video_assets|schema cache/i.test(error.message||"");
       const missingSeriesSchema=error&&/column .*?(media_url|media_type|series_id|episode_number|episode_title).*?(does not exist|schema cache)|could not find the .*?(media_url|media_type|series_id|episode_number|episode_title)/i.test(error.message||"");
-      if(missingSeriesSchema&&seriesMode==="none"&&!mediaFile){
+      if((missingVideoSchema||missingSeriesSchema)&&seriesMode==="none"&&!mediaFile){
         const legacyPayload={author_id:session.user.id,title:form.title.trim(),description:form.desc.trim(),tags,open_source:form.open,open_collab:form.collab,has_bounty:form.bounty,demo_url:form.demoUrl.trim()||null,github_url:form.githubUrl.trim()||null};
         const legacy=await supabase.from("posts").insert(legacyPayload).select().single();
         data=legacy.data;error=legacy.error;
@@ -2985,12 +3074,15 @@ function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
       if(error)throw error;
       setCreatedPostId(data.id);setCreatedSeriesId(seriesId);setDropped(true);
       if(seriesId)await supabase.from("project_series").update({updated_at:new Date().toISOString()}).eq("id",seriesId);
-      toast.success(seriesId?"Project update published. Your series is growing!":"Build dropped! Africa can see it now.");
+      toast.success(mediaFile?"Video uploaded. It will appear once Stream finishes processing.":(seriesId?"Project update published. Your series is growing!":"Build dropped! Africa can see it now."));
     }catch(e){
-      if(uploadedPath){try{await supabase.storage.from("project-videos").remove([uploadedPath]);}catch{}}
+      if(videoAsset?.assetId&&accessToken){
+        try{await fetch("/api/videos/delete",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+accessToken},body:JSON.stringify({assetId:videoAsset.assetId})});}catch{}
+      }
       if(createdSeries?.id){try{await supabase.from("project_series").delete().eq("id",createdSeries.id);}catch{}}
-      const needsSetup=/project_series|project-videos|media_url|media_type|series_id|episode_number|episode_title/i.test(e?.message||"");
-      toast.error(needsSetup?"Supabase setup is required for video uploads and series. Apply 202611240002_project_video_series.sql in the Supabase SQL Editor.":(e?.message||"Drop failed — try again."));
+      const message=e?.message||"Drop failed — try again.";
+      const needsSchema=/video_asset_id|video_assets|project_series|media_url|media_type|series_id|episode_number|episode_title/i.test(message);
+      toast.error(needsSchema?"Apply the VIBR Cloudflare video-assets migration in Supabase before publishing videos and series.":message);
       console.error("Drop error:",e);
     }finally{setDropping(false);setUploading(false);}
   };
@@ -3045,16 +3137,17 @@ function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
                 <p style={{fontSize:11,color:"var(--muted)",lineHeight:1.6,marginBottom:12}}>Show the product working, share a screen recording or document your latest build update.</p>
                 <label style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,minHeight:58,padding:14,border:"1px dashed var(--gold)",background:"var(--s2)",cursor:"pointer",fontFamily:"var(--fm)",fontSize:10,letterSpacing:1.2,color:"var(--text)"}}>
                   <span style={{fontSize:22}}>＋</span>{mediaFile?mediaFile.name:"CHOOSE VIDEO FILE"}
-                  <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-m4v" onChange={selectVideo} style={{display:"none"}}/>
+                  <input type="file" accept="video/*" onChange={selectVideo} style={{display:"none"}}/>
                 </label>
                 <div style={{display:"flex",justifyContent:"space-between",gap:10,marginTop:8,color:"var(--muted)",fontFamily:"var(--fm)",fontSize:8}}>
-                  <span>MP4 · MOV · WEBM</span><span>MAX 50 MB</span>
+                  <span>MP4 · MOV · WEBM</span><span>UP TO 30 GB · RESUMABLE</span>
                 </div>
                 {mediaPreview&&<div style={{marginTop:14}}>
                   <video src={mediaPreview} controls playsInline preload="metadata" style={{width:"100%",maxHeight:300,display:"block",background:"#000"}}/>
-                  <button type="button" onClick={()=>{setMediaFile(null);setMediaPreview("");}} style={{marginTop:7,border:0,background:"transparent",color:"var(--red)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,cursor:"pointer"}}>REMOVE VIDEO ×</button>
+                  <div style={{marginTop:7,color:"var(--muted)",fontFamily:"var(--fm)",fontSize:8}}>{(mediaFile.size/1024/1024).toFixed(1)} MB · {mediaDuration?Math.floor(mediaDuration/60)+"m "+Math.round(mediaDuration%60)+"s":"Duration unavailable"}</div>
+                  <button type="button" onClick={()=>{setMediaFile(null);setMediaPreview("");setMediaDuration(null);setUploadProgress(0);}} style={{marginTop:7,border:0,background:"transparent",color:"var(--red)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,cursor:"pointer"}}>REMOVE VIDEO ×</button>
                 </div>}
-                {uploading&&<div style={{marginTop:10,color:"var(--gold)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1}}>UPLOADING VIDEO TO SUPABASE STORAGE…</div>}
+                {uploading&&<div style={{marginTop:10}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:6,color:"var(--gold)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1}}><span>UPLOADING DIRECTLY TO CLOUDFLARE STREAM</span><span>{uploadProgress}%</span></div><div style={{height:5,background:"var(--border)",overflow:"hidden"}}><div style={{height:"100%",width:uploadProgress+"%",background:"var(--green)",transition:"width .2s"}}/></div><div style={{marginTop:6,color:"var(--muted)",fontFamily:"var(--fm)",fontSize:8}}>Resumable upload · Your video is transferred directly from this device.</div></div>}
               </section>
 
               <section style={{background:"var(--surface)",border:"2px solid var(--border)",padding:18}}>
