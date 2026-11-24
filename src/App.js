@@ -1609,7 +1609,7 @@ function CollabsPage({navigate,returnTo,userRole,session}){
 
   useEffect(()=>{
     supabase.from('collabs')
-      .select('*, profiles:author_id(username,country,full_name)')
+      .select('*, profiles:author_id(username,country,full_name,vibe_points)')
       .eq('status','open')
       .order('created_at',{ascending:false})
       .limit(20)
@@ -1620,6 +1620,7 @@ function CollabsPage({navigate,returnTo,userRole,session}){
             name:c.profiles?.full_name||c.profiles?.username||"Builder",
             handle:c.profiles?.username||"builder",
             loc:c.profiles?.country||"Africa",
+            vibe:Number(c.profiles?.vibe_points||0),
             av:(c.profiles?.username||"B").slice(0,2).toUpperCase(),
             avc:"red", flag:"🌍",
             project:c.project,
@@ -1649,6 +1650,7 @@ function CollabsPage({navigate,returnTo,userRole,session}){
     return score;
   };
   const displayCollabs = [...(liveCollabs.length>0 ? liveCollabs : COLLABS)]
+    .filter(c=>filter==="all"||(c.needs||[]).some(role=>String(role).toLowerCase()===filter.toLowerCase()))
     .sort((a,b)=>scoreCollab(b)-scoreCollab(a));
 
   const sendRequest=async(id)=>{
@@ -1682,7 +1684,7 @@ function CollabsPage({navigate,returnTo,userRole,session}){
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:11}}>
               <Av name={c.av} color={c.avc} size={36}/>
               <div><div style={{fontWeight:700,fontSize:13}}>{c.name}</div><div style={{color:"var(--muted)",fontSize:9,fontFamily:"var(--fm)"}}>@{c.handle} · {c.loc}</div></div>
-              <div style={{marginLeft:"auto",background:"rgba(240,165,0,.1)",border:"1px solid var(--gold)",padding:"2px 9px",fontFamily:"var(--fm)",fontSize:8,color:"var(--gold)"}}>⚡{c.vibe.toLocaleString()} pts</div>
+              <div style={{marginLeft:"auto",background:"rgba(240,165,0,.1)",border:"1px solid var(--gold)",padding:"2px 9px",fontFamily:"var(--fm)",fontSize:8,color:"var(--gold)"}}>⚡{Number(c.vibe||0).toLocaleString()} pts</div>
             </div>
             <div style={{fontFamily:"var(--fd)",fontSize:19,letterSpacing:1,marginBottom:5,lineHeight:1.1}}>{c.project}</div>
             <p style={{color:"#999",fontSize:12,lineHeight:1.6,marginBottom:11}}>{c.desc}</p>
