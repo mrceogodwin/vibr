@@ -657,11 +657,14 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
           .vibr-bottom-dock{left:10px!important;right:10px!important;max-width:calc(100vw - 20px)!important}
           .vibr-profile-page{width:100%!important;max-width:100vw!important;min-width:0!important;overflow-x:clip!important}
           .vibr-profile-inner{width:100%!important;max-width:820px!important;padding-left:16px!important;padding-right:16px!important;min-width:0!important}
-          .vibr-profile-identity{align-items:flex-start!important;flex-wrap:wrap!important;gap:12px!important;margin-top:-34px!important}
-          .vibr-profile-identity>div:nth-child(2){flex:1 1 calc(100% - 104px)!important;min-width:0!important}
-          .vibr-profile-name-row>div:first-child{font-size:clamp(23px,7vw,30px)!important;letter-spacing:1px!important;overflow-wrap:anywhere}
-          .vibr-profile-actions{width:100%!important;padding:0!important}
-          .vibr-profile-actions button{flex:1 1 auto!important;min-width:0!important}
+          .vibr-profile-inner{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
+          .vibr-profile-identity{display:grid!important;grid-template-columns:86px minmax(0,1fr)!important;align-items:end!important;gap:12px!important;margin-top:-34px!important}
+          .vibr-profile-identity>div:first-child{grid-column:1;grid-row:1;width:86px!important;height:86px!important}
+          .vibr-profile-identity>div:nth-child(2){grid-column:2;grid-row:1;min-width:0!important;flex:none!important;width:100%!important}
+          .vibr-profile-name-row{align-items:flex-start!important;gap:6px!important}
+          .vibr-profile-name-row>div:first-child{font-size:clamp(22px,6vw,29px)!important;letter-spacing:1px!important;overflow-wrap:anywhere}
+          .vibr-profile-actions{grid-column:1/-1!important;grid-row:2;width:100%!important;padding:0!important;display:flex!important;justify-content:flex-start!important;flex-wrap:nowrap!important;gap:10px!important}
+          .vibr-profile-actions button{flex:0 1 auto!important;width:auto!important;min-width:0!important;white-space:nowrap!important;padding-left:16px!important;padding-right:16px!important}
           .vibr-profile-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
           .vibr-profile-stats>div{min-width:0!important;padding:13px 6px!important;border-bottom:1px solid var(--border)}
           .vibr-profile-stats>div:last-child{grid-column:1/-1}
