@@ -15,7 +15,7 @@ module.exports = async function handler(req, res) {
     const mimeType = String(req.body?.mimeType || "");
     const durationSeconds = Number(req.body?.durationSeconds);
 
-    if (!Number.isSafeInteger(fileSize) || fileSize <= 0 || fileSize > 30 * 1024 * 1024 * 1024) {
+    if (!Number.isSafeInteger(fileSize) || fileSize <= 0 || fileSize >= 30 * 1024 * 1024 * 1024) {
       return res.status(400).json({ error: "Choose a video file up to 30 GB." });
     }
     if (!mimeType.startsWith("video/")) {
@@ -56,6 +56,7 @@ module.exports = async function handler(req, res) {
           Authorization: "Bearer " + apiToken,
           "Tus-Resumable": "1.0.0",
           "Upload-Length": String(fileSize),
+          "Upload-Creator": user.id,
           "Upload-Metadata": uploadMetadata
         }
       }
@@ -71,9 +72,11 @@ module.exports = async function handler(req, res) {
     if (!uploadUrl) {
       return res.status(502).json({ error: "Cloudflare did not return a resumable upload URL." });
     }
-    const uid = new URL(uploadUrl).pathname.split("/").filter(Boolean).pop();
-    if (!uid) {
-      return res.status(502).json({ error: "Cloudflare returned an invalid video upload URL." });
+    // Cloudflare explicitly recommends reading the UID from this response header,
+    // not parsing it from the opaque TUS upload URL.
+    const uid = cloudflareResponse.headers.get("stream-media-id");
+    if (!uid || !/^[a-zA-Z0-9_-]{20,80}$/.test(uid)) {
+      return res.status(502).json({ error: "Cloudflare did not return a valid stream media ID." });
     }
 
     const iframeUrl = "https://customer-" + customerCode.replace(/^customer-/, "") + ".cloudflarestream.com/" + uid + "/iframe";
