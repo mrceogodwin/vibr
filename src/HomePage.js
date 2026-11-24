@@ -169,9 +169,9 @@ export default function LandingPage({ navigate, getPosts }) {
           <button onClick={() => go("community")}>EXPLORE THE COMMUNITY <Arrow/></button>
         </div>
         <div className="vh-chapter-grid">
-          {CHAPTERS.map((chapter) => (
+          {CHAPTERS.map((chapter, index) => (
             <button className="vh-chapter" key={chapter.code} onClick={() => go("community")}>
-              <span className="vh-chapter-top"><b>{chapter.code}</b><i>{chapter.flag}</i></span>
+              <span className="vh-chapter-top"><b>{chapter.code}</b><i aria-hidden="true">{String(index + 1).padStart(2, "0")}</i></span>
               <strong>{chapter.name}</strong><small>{chapter.note}</small><em>EXPLORE CHAPTER <Arrow/></em>
             </button>
           ))}
