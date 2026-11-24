@@ -18,6 +18,7 @@ const _stub = {
     onAuthStateChange: ()=>({ data:{ subscription:{ unsubscribe(){} } } }),
     signInWithPassword: async ()=>({ data:null, error:{ message:"Set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY" } }),
     signUp: async ()=>({ data:null, error:{ message:"Set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY" } }),
+    resend: async ()=>({ data:null, error:{ message:"Set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY" } }),
     signOut: async ()=>({ error:null }),
     resetPasswordForEmail: async ()=>({ error:{ message:"Set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY" } }),
   },
@@ -786,6 +787,20 @@ function AuthPage({mode="login",navigate,onAuth}){
   const [form,setForm]=useState({name:"",email:"",password:"",country:""});
   const [loading,setLoading]=useState(false);
   const [err,setErr]=useState("");
+  const [resending,setResending]=useState(false);
+  const [resendSent,setResendSent]=useState(false);
+  const needsConfirmation=!!err&&/email not confirmed/i.test(err);
+  const resendConfirmation=async()=>{
+    if(!form.email.trim()){setErr("Enter your email address first.");return;}
+    setResending(true);setResendSent(false);
+    try{
+      const {error}=await supabase.auth.resend({type:"signup",email:form.email.trim(),options:{emailRedirectTo:window.location.origin}});
+      if(error)throw error;
+      setResendSent(true);setErr("");
+      toast.success("Confirmation email requested. Check your inbox and spam folder.");
+    }catch(e){setErr(e.message||"Could not resend the confirmation email. Please try again.");}
+    finally{setResending(false);}
+  };
   const upd=(k,v)=>setForm(f=>({...f,[k]:v}));
   const inp={width:"100%",padding:"11px 13px",background:"var(--s2)",border:"2px solid var(--border)",color:"var(--text)",fontSize:13,outline:"none",fontFamily:"var(--fb)",transition:"border-color .2s",borderRadius:0};
 
@@ -834,6 +849,8 @@ function AuthPage({mode="login",navigate,onAuth}){
             {[["LOG IN",true],["SIGN UP",false]].map(([l,val])=><button key={l} onClick={()=>{setIsLogin(val);setErr("");}} style={{flex:1,padding:"9px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,background:isLogin===val?"var(--red)":"transparent",color:isLogin===val?"#fff":"var(--muted)",border:"none",cursor:"pointer",transition:"all .2s"}}>{l}</button>)}
           </div>
           {err&&<div style={{background:"rgba(209,43,43,.1)",border:"1px solid var(--red)",padding:"9px 12px",fontFamily:"var(--fm)",fontSize:10,color:"var(--r2)",letterSpacing:.5,marginBottom:12,lineHeight:1.5}}>{err}</div>}
+          {needsConfirmation&&<button type="button" onClick={resendConfirmation} disabled={resending} style={{width:"100%",marginBottom:12,padding:"11px 12px",background:"transparent",border:"1px solid var(--gold)",color:"var(--gold)",fontFamily:"var(--fm)",fontSize:10,letterSpacing:1.5,cursor:resending?"wait":"pointer",opacity:resending?0.65:1}}>{resending?"SENDING...":"RESEND CONFIRMATION EMAIL"}</button>}
+          {resendSent&&<div role="status" style={{color:"var(--gr2)",fontFamily:"var(--fm)",fontSize:10,marginBottom:12}}>Confirmation email requested. Check inbox, spam and promotions.</div>}
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {!isLogin&&<div><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:5,textTransform:"uppercase"}}>Full Name</div><input value={form.name} onChange={e=>upd("name",e.target.value)} placeholder="Your name" style={inp} onFocus={e=>e.target.style.borderColor="var(--red)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/></div>}
             <div><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:5,textTransform:"uppercase"}}>Email</div><input value={form.email} onChange={e=>upd("email",e.target.value)} type="email" placeholder="you@email.com" aria-label="Email address" style={inp} onFocus={e=>e.target.style.borderColor="var(--red)"} onBlur={e=>e.target.style.borderColor="var(--border)"}  onKeyDown={e=>e.key==="Enter"&&handleSubmit()}/></div>
