@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
 
     // Limit a single account to three active uploads/encodes at a time.
     // This protects against accidental repeated clicks and basic upload abuse.
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
     const { count, error: countError } = await admin
       .from("video_assets")
       .select("id", { count: "exact", head: true })
