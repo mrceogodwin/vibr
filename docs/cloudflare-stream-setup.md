@@ -17,7 +17,7 @@ Apply these in order in the VIBR Supabase SQL Editor:
 1. `supabase/migrations/202611240002_project_video_series.sql`
 2. `supabase/migrations/202611240003_cloudflare_stream_video_assets.sql`
 
-The first migration creates the existing project-series schema. The second creates the private video-asset metadata table and the post relationship. Do not skip the order.
+The first migration creates the existing project-series schema and legacy media URL columns, without creating a Supabase Storage video bucket. The second creates the private video-asset metadata table, upload-slot reservation function and post relationship. Do not skip the order.
 
 ## 2. Create a Cloudflare Stream API token
 
