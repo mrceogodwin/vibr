@@ -1624,15 +1624,21 @@ function PostDetailPage({postId,navigate,returnTo,userRole,session}){
           <div style={{display:"flex",gap:9,marginBottom:18,paddingBottom:18,borderBottom:"1px solid var(--border)"}}>
             <Av name="YOU" color="red" size={32}/>
             <div style={{flex:1}}>
-              <textarea value={newC} onChange={e=>setNewC(e.target.value)} placeholder="Share thoughts, feedback, or collab interest..." rows={3} style={{width:"100%",padding:"10px 12px",background:"var(--s2)",border:"2px solid var(--border)",color:"var(--text)",fontSize:13,outline:"none",fontFamily:"var(--fb)",resize:"none",lineHeight:1.6,borderRadius:0,transition:"border-color .2s"}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
+              <textarea value={newC} onChange={e=>setNewC(e.target.value)} placeholder="Share thoughts, feedback, or collab interest..." rows={3} style={{width:"100%",minWidth:0,boxSizing:"border-box",padding:"12px 14px",background:"var(--s2)",border:"2px solid var(--border)",color:"var(--text)",fontSize:16,outline:"none",fontFamily:"var(--fb)",resize:"vertical",lineHeight:1.6,borderRadius:0,transition:"border-color .2s",WebkitAppearance:"none"}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/>
               <div style={{display:"flex",justifyContent:"flex-end",marginTop:6}}>
                 <button onClick={async()=>{
                   if(!newC.trim())return;
                   if(!session){navigate("login");return;}
-                  const text=newC; setNewC(""); setPosting(true);
-                  setComments(c=>[...c,{id:Date.now(),user:"You",av:"YO",text,time:"Just now"}]);
-                  try{await createComment({postId,authorId:session.user.id,content:text});toast.info("Comment posted!");}catch(e){toast.error("Failed to post comment.");}
-                  finally{setPosting(false);}
+                  const text=newC.trim(); setPosting(true);
+                  try{
+                    const saved=await createComment({postId,authorId:session.user.id,content:text});
+                    setComments(c=>[...c,{id:saved?.id||Date.now(),user:"You",av:"YO",text:saved?.content||text,time:"Just now"}]);
+                    setNewC("");
+                    toast.success("Comment posted!");
+                  }catch(e){
+                    console.error("Supabase comment insert failed:",e);
+                    toast.error(e?.message ? `Comment failed: ${e.message}` : "Comment could not be saved. Please try again.");
+                  }finally{setPosting(false);}
                 }} disabled={posting} style={{background:"var(--red)",color:"#fff",border:"2px solid var(--red)",padding:"6px 16px",fontFamily:"var(--fd)",fontSize:14,letterSpacing:2,cursor:"pointer",transition:"all .15s",opacity:posting?.6:1}} onMouseEnter={e=>{e.target.style.background="transparent";e.target.style.color="var(--red)";}} onMouseLeave={e=>{e.target.style.background="var(--red)";e.target.style.color="#fff";}}>POST →</button>
               </div>
             </div>
