@@ -2967,13 +2967,21 @@ function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
         mediaType=mediaFile.type;
         setUploading(false);
       }
-      const {data,error}=await supabase.from("posts").insert({
+      const postPayload={
         author_id:session.user.id,title:form.title.trim(),description:form.desc.trim(),
         tags,open_source:form.open,open_collab:form.collab,has_bounty:form.bounty,
         demo_url:form.demoUrl.trim()||null,github_url:form.githubUrl.trim()||null,
         media_url:mediaUrl,media_type:mediaType,series_id:seriesId,
         episode_number:episodeNumber,episode_title:seriesId?(episodeTitle.trim()||("Week "+episodeNumber)):null
-      }).select().single();
+      };
+      let {data,error}=await supabase.from("posts").insert(postPayload).select().single();
+      // Standard one-time Drops keep working if the additive video/series SQL has not been run yet.
+      const missingSeriesSchema=error&&/column .*?(media_url|media_type|series_id|episode_number|episode_title).*?(does not exist|schema cache)|could not find the .*?(media_url|media_type|series_id|episode_number|episode_title)/i.test(error.message||"");
+      if(missingSeriesSchema&&seriesMode==="none"&&!mediaFile){
+        const legacyPayload={author_id:session.user.id,title:form.title.trim(),description:form.desc.trim(),tags,open_source:form.open,open_collab:form.collab,has_bounty:form.bounty,demo_url:form.demoUrl.trim()||null,github_url:form.githubUrl.trim()||null};
+        const legacy=await supabase.from("posts").insert(legacyPayload).select().single();
+        data=legacy.data;error=legacy.error;
+      }
       if(error)throw error;
       setCreatedPostId(data.id);setCreatedSeriesId(seriesId);setDropped(true);
       if(seriesId)await supabase.from("project_series").update({updated_at:new Date().toISOString()}).eq("id",seriesId);
@@ -2981,7 +2989,8 @@ function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
     }catch(e){
       if(uploadedPath){try{await supabase.storage.from("project-videos").remove([uploadedPath]);}catch{}}
       if(createdSeries?.id){try{await supabase.from("project_series").delete().eq("id",createdSeries.id);}catch{}}
-      toast.error(e?.message||"Drop failed — try again.");
+      const needsSetup=/project_series|project-videos|media_url|media_type|series_id|episode_number|episode_title/i.test(e?.message||"");
+      toast.error(needsSetup?"Supabase setup is required for video uploads and series. Apply 202611240002_project_video_series.sql in the Supabase SQL Editor.":(e?.message||"Drop failed — try again."));
       console.error("Drop error:",e);
     }finally{setDropping(false);setUploading(false);}
   };
