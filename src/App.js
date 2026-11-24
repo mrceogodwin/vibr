@@ -2572,14 +2572,15 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
             <div className="vibr-profile-actions" style={{display:"flex",gap:8,paddingBottom:5,flexWrap:"wrap"}}>
               {isOwnProfile ? (
                 <Btn v="primary" onClick={()=>navigate("settings")}>✏️ Edit Profile</Btn>
-              ) : (
+              ) : displayProfile ? (
                 <>
                   <Btn v={following?"ghost":"primary"} onClick={toggleFollow} disabled={followBusy}>{followBusy?"PLEASE WAIT…":following?"Following ✓":"Follow"}</Btn>
                   <Btn v="ghost" onClick={()=>navigate("messages")}>💬 Message</Btn>
                 </>
-              )}
+              ) : null}
             </div>
           </div>
+          {!profileLoading&&!displayProfile&&<p role="status" style={{color:"var(--muted)",fontSize:12,lineHeight:1.7,marginBottom:20}}>This member profile could not be found or is no longer available.</p>}
           {displayBio&&<p style={{color:"#aaa",fontSize:13,lineHeight:1.8,maxWidth:540,marginBottom:20}}>{displayBio}</p>}
           {skills.length>0&&<div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>{skills.map(s=><span key={s} style={{padding:"4px 11px",background:"var(--s2)",border:"1px solid var(--border)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,color:"var(--muted)"}}>{s}</span>)}</div>}
           <div className="vibr-profile-stats" style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:0,marginBottom:32,border:"2px solid var(--border)",overflow:"hidden",minWidth:0}}>
