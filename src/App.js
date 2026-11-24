@@ -4973,7 +4973,7 @@ export default function App(){
       <OfflineBanner/>
       <ToastContainer/>
       {/* ── Public */}
-      {page==="landing"              && <LandingPage navigate={navigate}/>}
+      {page==="landing"              && <LandingPage navigate={navigate} getPosts={getPosts}/>}
       {page==="account-signup"       && <AccountTypePage mode="signup" navigate={navigate}/>}
       {page==="account-login"        && <AccountTypePage mode="login"  navigate={navigate}/>}
       {/* ── Builder auth */}
