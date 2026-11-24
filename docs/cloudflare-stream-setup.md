@@ -71,6 +71,6 @@ The current client supports files up to Cloudflare Stream's documented default 3
 
 ## 6. Capacity requirement before large-scale launch
 
-Cloudflare Stream documents a default limit of 120 videos queued or being encoded simultaneously. This is not a one-million-upload guarantee. Before marketing or load-testing a one-million-user launch, contact Cloudflare Support and request a written concurrency increase based on the forecast upload rate. The queue/processing status in VIBR is designed to tolerate processing delay, but the provider's account quota still applies.
+Cloudflare Stream documents a default limit of 120 videos queued or being encoded simultaneously, separate from viewer concurrency. VIBR now returns a clear 429 capacity response with a retry interval when Stream declines an upload ticket due to capacity. This is not a one-million-upload guarantee. Before marketing or load-testing a one-million-user launch, contact Cloudflare Support and request a written upload/encoding concurrency increase based on the forecast upload rate. Processing status tolerates normal encoding delay, but provider quotas still apply.
 
 Also load-test the Vercel authorization endpoint and Supabase metadata writes, and monitor Stream minutes stored/delivered. A successful build does not prove production capacity.
