@@ -1647,6 +1647,25 @@ function FeedPage({navigate,returnTo,userRole,session}){
   useEffect(()=>{ setFeedLoading(pageLoading); },[pageLoading]);
   useEffect(()=>{ if(pagedPosts.length>0) setLivePosts(pagedPosts); },[pagedPosts]);
 
+  const hasProcessingVideos=livePosts.some(p=>p.videoStatus==="uploading"||p.videoStatus==="processing");
+  useEffect(()=>{
+    if(!hasProcessingVideos)return;
+    let active=true;
+    const refreshStatuses=async()=>{
+      try{
+        const fresh=await getPosts({limit:Math.max(livePosts.length,15),offset:0});
+        if(!active)return;
+        const byId=new Map((fresh||[]).map(row=>[String(row.id),mapPost(row)]));
+        setLivePosts(current=>current.map(old=>{
+          const updated=byId.get(String(old.id));
+          return updated?{...old,...updated,votes:old.votes}:old;
+        }));
+      }catch(error){console.warn("Video status refresh failed:",error);}
+    };
+    const timer=setInterval(refreshStatuses,12000);
+    return()=>{active=false;clearInterval(timer);};
+  },[hasProcessingVideos,livePosts.length]);
+
   const displayPosts = livePosts.length>0 ? livePosts : FEED_POSTS;
   const posts = tab==="trending"
     ? displayPosts.filter(p=>p.trending)
@@ -1801,6 +1820,20 @@ function PostDetailPage({postId,navigate,returnTo,userRole,session}){
     load();
     return()=>{active=false;};
   },[postId]);
+
+  useEffect(()=>{
+    const status=livePost?.video_asset?.status;
+    if(status!=="uploading"&&status!=="processing")return;
+    let active=true;
+    const refreshVideoStatus=async()=>{
+      try{
+        const latest=await getPostDetail(postId);
+        if(active)setLivePost(latest);
+      }catch(error){console.warn("Video processing status refresh failed:",error);}
+    };
+    const timer=setInterval(refreshVideoStatus,10000);
+    return()=>{active=false;clearInterval(timer);};
+  },[postId,livePost?.video_asset?.status]);
 
   const sample=FEED_POSTS.find(x=>String(x.id)===String(postId));
   const profile=livePost?.profiles||{};
