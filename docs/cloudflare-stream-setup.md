@@ -25,7 +25,7 @@ Create an account API token with the minimum Stream permissions required to crea
 
 From the Cloudflare Stream dashboard, note:
 - Account ID
-- Stream customer code
+- Stream customer code (the code only; the player URL adds `customer-` automatically)
 
 ## 3. Add server-side Vercel environment variables
 
