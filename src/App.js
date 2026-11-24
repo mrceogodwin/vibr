@@ -2865,7 +2865,7 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
 
 // ── DROP ──────────────────────────────────────────────────────────────────────
 
-function DropPage({navigate,returnTo,userRole,session}){
+function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
   const [form,setForm]=useState({title:"",desc:"",collab:false,open:false,bounty:false,demoUrl:"",githubUrl:""});
   const [tags,setTags]=useState([]);
   const [needs,setNeeds]=useState([]);
@@ -2873,11 +2873,11 @@ function DropPage({navigate,returnTo,userRole,session}){
   const [dropping,setDropping]=useState(false);
   const [mediaFile,setMediaFile]=useState(null);
   const [mediaPreview,setMediaPreview]=useState("");
-  const [seriesMode,setSeriesMode]=useState("none");
+  const [seriesMode,setSeriesMode]=useState(initialSeriesId?"existing":"none");
   const [seriesTitle,setSeriesTitle]=useState("");
   const [seriesDescription,setSeriesDescription]=useState("");
   const [episodeTitle,setEpisodeTitle]=useState("");
-  const [selectedSeriesId,setSelectedSeriesId]=useState("");
+  const [selectedSeriesId,setSelectedSeriesId]=useState(initialSeriesId||"");
   const [mySeries,setMySeries]=useState([]);
   const [createdPostId,setCreatedPostId]=useState(null);
   const [createdSeriesId,setCreatedSeriesId]=useState(null);
@@ -5356,7 +5356,7 @@ export default function App(){
       {page==="leaderboard"          && <LeaderboardPage  {...shellProps}/>}
       {page==="messages"             && <MessagesPage     {...shellProps}/>}
       {(page==="profile"||isMemberProfile) && <ProfilePage {...shellProps} targetProfileId={targetProfileId}/>}
-      {(page==="drop"||isSeriesDrop) && <DropPage initialSeriesId={targetSeriesId} {...shellProps}/ >}
+      {(page==="drop"||isSeriesDrop) && <DropPage initialSeriesId={targetSeriesId} {...shellProps}/>}
       {page==="search"               && <SearchPage       {...shellProps}/>}
       {page==="notifications"        && <NotificationsPage {...shellProps}/>}
       {page==="settings"             && <SettingsPage     {...shellProps}/>}
