@@ -76,7 +76,7 @@ module.exports = async function handler(req, res) {
       return res.status(502).json({ error: "Cloudflare returned an invalid video upload URL." });
     }
 
-    const iframeUrl = "https://" + customerCode + ".cloudflarestream.com/" + uid + "/iframe";
+    const iframeUrl = "https://customer-" + customerCode.replace(/^customer-/, "") + ".cloudflarestream.com/" + uid + "/iframe";
     const { data: asset, error: insertError } = await admin
       .from("video_assets")
       .insert({
