@@ -3050,10 +3050,10 @@ function SettingsPage({navigate,returnTo,userRole,session,profile}){
         {tab==="profile"&&(
           <div style={{display:"flex",flexDirection:"column",gap:18}} className="fu">
             <div style={{display:"flex",gap:18,alignItems:"center",padding:"20px",background:"var(--surface)",border:"2px solid var(--border)",marginBottom:8,minWidth:0}}>
-              <AvatarUpload userId={session?.user?.id} currentUrl={profile?.avatar_url} onSuccess={url=>{toast.success("Photo updated!");}}/>
+              <AvatarUpload userId={session?.user?.id} currentUrl={profile?.avatar_url}/>
               <div style={{minWidth:0}}>
                 <div style={{fontFamily:"var(--fd)",fontSize:22,letterSpacing:1,marginBottom:4}}>{profile?.full_name||"YOUR NAME"}</div>
-                <div style={{fontFamily:"var(--fm)",fontSize:9,color:"var(--muted)",overflowWrap:"anywhere"}}>{profile?.username?@`${profile.username}`:"@yourhandle"} · {profile?.country||"Nigeria"}</div>
+                <div style={{fontFamily:"var(--fm)",fontSize:9,color:"var(--muted)",overflowWrap:"anywhere"}}>{profile?.username?`@${profile.username}`:"@yourhandle"} · {profile?.country||"Nigeria"}</div>
                 <div style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--gold)",letterSpacing:1,marginTop:9}}>TAP THE SQUARE TO CHANGE PHOTO</div>
               </div>
             </div>
