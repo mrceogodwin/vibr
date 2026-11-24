@@ -546,31 +546,59 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
     );
   }
 
-  // ── BUILDER: full sidebar layout ─────────────────────────────────────────────
+  const [mobileMenuOpen,setMobileMenuOpen]=useState(false);
+  const openPage=(page)=>{setMobileMenuOpen(false);navigate(page);};
+
+  // ── BUILDER: desktop sidebar + mobile hamburger drawer ──────────────────────
   return (
-    <div style={{display:"flex",minHeight:"100vh",background:"var(--bg)"}}>
-      {/* Sidebar */}
-      <div className="vibr-sidebar" style={{width:224,background:"var(--surface)",borderRight:"2px solid var(--border)",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",overflowY:"auto",flexShrink:0}}>
-        <div style={{padding:"18px 18px 12px",borderBottom:"2px solid var(--border)"}}><Logo size={28} onClick={()=>navigate("landing")}/></div>
+    <div className="vibr-app-shell" style={{display:"flex",minHeight:"100vh",background:"var(--bg)"}}>
+      <header className="vibr-mobile-header">
+        <button type="button" className="vibr-mobile-menu-button" aria-label={mobileMenuOpen?"Close navigation menu":"Open navigation menu"} aria-expanded={mobileMenuOpen} onClick={()=>setMobileMenuOpen(v=>!v)}>
+          <span/><span/><span/>
+        </button>
+        <div className="vibr-mobile-brand" onClick={()=>openPage("feed")}><Logo size={24}/></div>
+        <button type="button" className="vibr-mobile-header-profile" aria-label="Open profile" onClick={()=>openPage("profile")}>👤</button>
+      </header>
+
+      {mobileMenuOpen && <button type="button" className="vibr-mobile-scrim" aria-label="Close navigation menu" onClick={()=>setMobileMenuOpen(false)}/>}
+
+      <div className={"vibr-sidebar"+(mobileMenuOpen?" vibr-sidebar-open":"")} style={{width:224,background:"var(--surface)",borderRight:"2px solid var(--border)",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",overflowY:"auto",flexShrink:0}}>
+        <div className="vibr-sidebar-brand" style={{padding:"18px 18px 12px",borderBottom:"2px solid var(--border)"}}><Logo size={28} onClick={()=>openPage("landing")}/></div>
         <nav role="navigation" aria-label="Main navigation" style={{flex:1,padding:"10px 0"}}>
           {nav.map(([icon,label,page])=>{
             const a=activePage===page;
             return (
-              <div key={label} onClick={()=>navigate(page)} style={{display:"flex",alignItems:"center",gap:11,padding:"11px 18px",cursor:"pointer",transition:"all .15s",background:a?"rgba(209,43,43,.12)":"transparent",borderLeft:a?"3px solid var(--red)":"3px solid transparent",color:a?"var(--white)":"var(--muted)"}} onMouseEnter={e=>{if(!a){e.currentTarget.style.background="var(--s2)";e.currentTarget.style.color="var(--white)";}}} onMouseLeave={e=>{if(!a){e.currentTarget.style.background="transparent";e.currentTarget.style.color="var(--muted)";}}}>
+              <div key={label} onClick={()=>openPage(page)} style={{display:"flex",alignItems:"center",gap:11,padding:"11px 18px",cursor:"pointer",transition:"all .15s",background:a?"rgba(209,43,43,.12)":"transparent",borderLeft:a?"3px solid var(--red)":"3px solid transparent",color:a?"var(--white)":"var(--muted)"}} onMouseEnter={e=>{if(!a){e.currentTarget.style.background="var(--s2)";e.currentTarget.style.color="var(--white)";}}} onMouseLeave={e=>{if(!a){e.currentTarget.style.background="transparent";e.currentTarget.style.color="var(--muted)";}}}>
                 <span style={{fontSize:15,width:18,textAlign:"center"}}>{icon}</span>
                 <span style={{fontWeight:600,fontSize:13}}>{label}</span>
-                {label==="Drop"        && <span style={{marginLeft:"auto",background:"var(--red)",color:"#fff",fontSize:8,padding:"2px 5px",fontFamily:"var(--fm)"}}>NEW</span>}
-                {label==="Messages"    && <span style={{marginLeft:"auto",background:"var(--red)",color:"#fff",fontSize:8,padding:"2px 5px",fontFamily:"var(--fm)",borderRadius:8}}>3</span>}
+                {label==="Drop"&&<span style={{marginLeft:"auto",background:"var(--red)",color:"#fff",fontSize:8,padding:"2px 5px",fontFamily:"var(--fm)"}}>NEW</span>}
+                {label==="Messages"&&<span style={{marginLeft:"auto",background:"var(--red)",color:"#fff",fontSize:8,padding:"2px 5px",fontFamily:"var(--fm)",borderRadius:8}}>3</span>}
                 {label==="Notifications"&&<span style={{marginLeft:"auto",background:"var(--gold)",color:"#000",fontSize:8,padding:"2px 5px",fontFamily:"var(--fm)",borderRadius:8}}>5</span>}
-                {label==="Go Pro"      && <span style={{marginLeft:"auto",background:"var(--gold)",color:"#000",fontSize:8,padding:"2px 5px",fontFamily:"var(--fm)"}}>🔥</span>}
+                {label==="Go Pro"&&<span style={{marginLeft:"auto",background:"var(--gold)",color:"#000",fontSize:8,padding:"2px 5px",fontFamily:"var(--fm)"}}>🔥</span>}
               </div>
             );
           })}
         </nav>
-        <UserCard navigate={navigate}/>
+        <UserCard navigate={openPage}/>
       </div>
-      {/* Main content */}
-      <main id="main-content" role="main" style={{flex:1,overflow:"auto"}} aria-label="Main content">{children}</main>
+      <main id="main-content" role="main" className="vibr-main-content" style={{flex:1,minWidth:0,overflow:"auto"}} aria-label="Main content">{children}</main>
+      <style>{`
+        .vibr-mobile-header{display:none}
+        .vibr-mobile-scrim{display:none}
+        @media(max-width:900px){
+          .vibr-app-shell{display:block!important;padding-top:58px;min-width:0}
+          .vibr-mobile-header{height:58px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 16px;position:fixed;left:0;right:0;top:0;z-index:1002;background:rgba(10,10,10,.97);border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+          .vibr-mobile-menu-button{width:42px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--white);cursor:pointer}
+          .vibr-mobile-menu-button span{display:block;width:19px;height:2px;background:var(--white);border-radius:2px}
+          .vibr-mobile-brand{display:flex;align-items:center;cursor:pointer}
+          .vibr-mobile-header-profile{width:38px;height:38px;border:1px solid var(--border);border-radius:50%;background:var(--s2);color:var(--white);font-size:17px}
+          .vibr-sidebar{display:flex!important;position:fixed!important;z-index:1004!important;left:0!important;top:58px!important;bottom:0!important;width:min(300px,84vw)!important;height:calc(100dvh - 58px)!important;transform:translateX(-105%);transition:transform .24s ease;box-shadow:16px 0 45px rgba(0,0,0,.45);border-right:1px solid var(--border)!important}
+          .vibr-sidebar.vibr-sidebar-open{transform:translateX(0)}
+          .vibr-mobile-scrim{display:block;position:fixed;inset:58px 0 0;z-index:1003;border:0;background:rgba(0,0,0,.58);padding:0}
+          .vibr-main-content{width:100%;min-width:0!important;max-width:100%;overflow-x:hidden!important}
+        }
+        @media(min-width:901px){.vibr-sidebar{transform:none!important}.vibr-mobile-header,.vibr-mobile-scrim{display:none!important}}
+      `}</style>
     </div>
   );
 };
