@@ -4869,7 +4869,9 @@ export default function App(){
   }, []);
 
   const isPost = page.startsWith("post-");
-  const isHack = page.startsWith("hack-");\n  const isMemberProfile = page.startsWith("profile-");\n  const targetProfileId = isMemberProfile ? page.slice(8) : null;
+  const isHack = page.startsWith("hack-");
+  const isMemberProfile = page.startsWith("profile-");
+  const targetProfileId = isMemberProfile ? page.slice(8) : null;
   const postId = isPost ? parseInt(page.split("-")[1]) : null;
   const hackId = isHack ? parseInt(page.split("-")[1]) : null;
 
