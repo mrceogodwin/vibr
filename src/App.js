@@ -2481,6 +2481,7 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
   const [tab,setTab]=useState("projects");
   const [following,setFollowing]=useState(false);
   const [followBusy,setFollowBusy]=useState(false);
+  const [followStatusLoading,setFollowStatusLoading]=useState(false);
   const [followerCount,setFollowerCount]=useState(0);
   const [followingCount,setFollowingCount]=useState(0);
   const [liveProfile,setLiveProfile]=useState(null);
@@ -2491,7 +2492,7 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
   useEffect(()=>{
     let alive=true;
     const profileId=targetProfileId || session?.user?.id;
-    setLiveProfile(null); setLivePosts([]); setFollowing(false); setFollowerCount(0); setFollowingCount(0);
+    setLiveProfile(null); setLivePosts([]); setFollowing(false); setFollowStatusLoading(false); setFollowerCount(0); setFollowingCount(0);
     if(!profileId){setProfileLoading(false);return ()=>{alive=false;};}
     setProfileLoading(true);
     getProfile(profileId)
@@ -2508,8 +2509,11 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
     supabase.from("follows").select("id",{count:"exact",head:true}).eq("follower_id",profileId)
       .then(({count})=>{if(alive)setFollowingCount(count||0);}).catch(()=>{});
     if(session && session.user.id!==profileId){
+      setFollowStatusLoading(true);
       supabase.from("follows").select("id").eq("follower_id",session.user.id).eq("following_id",profileId).maybeSingle()
-        .then(({data})=>{if(alive)setFollowing(!!data);}).catch(()=>{});
+        .then(({data})=>{if(alive)setFollowing(!!data);})
+        .catch(()=>{})
+        .finally(()=>{if(alive)setFollowStatusLoading(false);});
     }
     return ()=>{alive=false;};
   },[session?.user?.id,targetProfileId]);
@@ -2574,7 +2578,7 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
                 <Btn v="primary" onClick={()=>navigate("settings")}>✏️ Edit Profile</Btn>
               ) : displayProfile ? (
                 <>
-                  <Btn v={following?"ghost":"primary"} onClick={toggleFollow} disabled={followBusy}>{followBusy?"PLEASE WAIT…":following?"Following ✓":"Follow"}</Btn>
+                  <Btn v={following?"ghost":"primary"} onClick={toggleFollow} disabled={followBusy||followStatusLoading}>{followBusy?"PLEASE WAIT…":followStatusLoading?"CHECKING…":following?"Following ✓":"Follow"}</Btn>
                   <Btn v="ghost" onClick={()=>navigate("messages")}>💬 Message</Btn>
                 </>
               ) : null}
