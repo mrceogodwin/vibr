@@ -1452,7 +1452,7 @@ function FeedPage({navigate,returnTo,userRole,session}){
 
   // Paginated feed using usePagination hook
   const mapPost = p=>({
-    id:p.id, title:p.title,
+    id:p.id, authorId:p.author_id, title:p.title,
     name:p.profiles?.full_name||p.profiles?.username||"Builder",
     handle:p.profiles?.username||"builder",
     loc:p.profiles?.country||"Africa 🌍",
@@ -1515,8 +1515,8 @@ function FeedPage({navigate,returnTo,userRole,session}){
                 </button>
                 <div style={{flex:1}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:7}}>
-                    <Av name={post.av} color={post.avc} size={30}/>
-                    <div><div style={{fontWeight:700,fontSize:13}}>{post.name}</div><div style={{color:"var(--muted)",fontSize:9,fontFamily:"var(--fm)"}}>@{post.handle} · {post.loc} · {post.time}</div></div>
+                    <button onClick={()=>post.authorId&&navigate(`profile-${post.authorId}`)} style={{padding:0,border:0,background:"transparent",cursor:post.authorId?"pointer":"default"}}><Av name={post.av} color={post.avc} size={30}/></button>
+                    <div><div onClick={()=>post.authorId&&navigate(`profile-${post.authorId}`)} style={{fontWeight:700,fontSize:13,cursor:post.authorId?"pointer":"default"}}>{post.name}</div><div style={{color:"var(--muted)",fontSize:9,fontFamily:"var(--fm)"}}>@{post.handle} · {post.loc} · {post.time}</div></div>
                     {post.trending&&<span style={{marginLeft:"auto",background:"var(--red)",color:"#fff",fontSize:8,padding:"2px 7px",fontFamily:"var(--fm)",letterSpacing:1}}>🔥 TRENDING</span>}
                   </div>
                   <div style={{fontFamily:"var(--fd)",fontSize:18,letterSpacing:1,marginBottom:5,lineHeight:1.2,cursor:"pointer"}} onClick={()=>navigate(`post-${post.id}`)}>{post.title}</div>
