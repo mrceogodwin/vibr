@@ -640,6 +640,28 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
           .vibr-dock-create{width:54px;height:54px;justify-self:center;align-self:center;border:0;border-radius:18px;background:linear-gradient(145deg,#ffb900,#ff6a00);color:#090909;font-size:38px;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 18px rgba(255,117,0,.28);cursor:pointer;transform:translateY(-12px)}
           .vibr-dock-create span{font-weight:300;margin-top:-3px}
         }
+        /* Mobile containment pass: prevent desktop-width cards and grids escaping the viewport. */
+        @media(max-width:600px){
+          html,body,#root{width:100%;max-width:100%;overflow-x:clip!important}
+          .vibr-app-shell,.vibr-main-content,#main-content{width:100%!important;max-width:100vw!important;min-width:0!important;overflow-x:clip!important}
+          .vibr-main-content{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
+          .vibr-main-content *{box-sizing:border-box;min-width:0}
+          .vibr-main-content img,.vibr-main-content video,.vibr-main-content iframe{max-width:100%!important}
+          .vibr-main-content input,.vibr-main-content textarea,.vibr-main-content select{max-width:100%!important;min-width:0!important}
+          .vibr-main-content [style*="gridTemplateColumns"]{grid-template-columns:minmax(0,1fr)!important}
+          .vibr-main-content [style*="minmax(380px"],.vibr-main-content [style*="minmax(320px"],.vibr-main-content [style*="minmax(280px"],.vibr-main-content [style*="minmax(250px"]{grid-template-columns:minmax(0,1fr)!important}
+          .vibr-main-content [style*="display: flex"],.vibr-main-content [style*="display:flex"]{flex-wrap:wrap}
+          .vibr-main-content [style*="width: 100vw"],.vibr-main-content [style*="width:100vw"]{width:100%!important;max-width:100%!important}
+          .vibr-main-content [style*="minWidth: 3"],.vibr-main-content [style*="minWidth:3"]{min-width:0!important}
+          .vibr-collab-card{grid-template-columns:minmax(0,1fr)!important}
+          .vibr-bottom-dock{left:10px!important;right:10px!important;max-width:calc(100vw - 20px)!important}
+        }
+        @media(min-width:601px) and (max-width:900px){
+          .vibr-main-content{width:100%;max-width:100vw;min-width:0;overflow-x:clip!important}
+          .vibr-main-content *{box-sizing:border-box;min-width:0}
+          .vibr-main-content img,.vibr-main-content video,.vibr-main-content iframe{max-width:100%!important}
+          .vibr-main-content [style*="minmax(380px"],.vibr-main-content [style*="minmax(320px"]{grid-template-columns:minmax(0,1fr)!important}
+        }
         @media(min-width:901px){.vibr-sidebar{transform:none!important}.vibr-mobile-header,.vibr-mobile-scrim{display:none!important}}
       `}</style>
     </div>
