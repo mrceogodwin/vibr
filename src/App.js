@@ -644,6 +644,17 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
         }
         /* Mobile containment pass: prevent desktop-width cards and grids escaping the viewport. */
         @media(max-width:600px){
+          /* Drop page: stack the editor and preview instead of squeezing the form beside a fixed sidebar. */
+          .vibr-drop-layout{display:flex!important;flex-direction:column!important;width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:clip!important}
+          .vibr-drop-form{width:100%!important;max-width:100%!important;min-width:0!important;flex:1 1 auto!important;overflow:visible!important}
+          .vibr-drop-heading{position:relative!important;padding:16px!important;gap:10px!important;flex-wrap:wrap!important}
+          .vibr-drop-heading>div:last-child{font-size:21px!important}
+          .vibr-drop-fields{width:100%!important;max-width:100%!important;padding:24px 16px 36px!important;margin:0!important}
+          .vibr-drop-preview{width:100%!important;max-width:100%!important;min-width:0!important;flex:0 0 auto!important;height:auto!important;position:relative!important;top:auto!important;overflow:visible!important;border-left:0!important;border-top:2px solid var(--border)!important;padding:22px 16px calc(130px + env(safe-area-inset-bottom))!important}
+          .vibr-drop-preview>div{max-width:100%!important;min-width:0!important;overflow-wrap:anywhere}
+          .vibr-drop-preview p{overflow-wrap:anywhere}
+          .vibr-drop-fields input,.vibr-drop-fields textarea{width:100%!important;max-width:100%!important;min-width:0!important;font-size:16px!important}
+          .vibr-drop-fields>div>div[style*="gridTemplateColumns"]{grid-template-columns:minmax(0,1fr)!important}
           html,body,#root{width:100%;max-width:100%;overflow-x:clip!important}
           .vibr-app-shell,.vibr-main-content,#main-content{width:100%!important;max-width:100vw!important;min-width:0!important;overflow-x:clip!important}
           .vibr-main-content{padding-bottom:calc(104px + env(safe-area-inset-bottom))!important}
@@ -2690,13 +2701,13 @@ function DropPage({navigate,returnTo,userRole,session}){
   );
   return (
     <AppShell navigate={navigate} activePage="drop" returnTo={returnTo} userRole={userRole}>
-      <div style={{display:"flex"}}>
-        <div style={{flex:1,overflowY:"auto"}}>
-          <div style={{padding:"18px 30px",borderBottom:"2px solid var(--border)",position:"sticky",top:0,background:"var(--bg)",zIndex:10,display:"flex",alignItems:"center",gap:12}}>
+      <div className="vibr-drop-layout" style={{display:"flex",width:"100%",minWidth:0,alignItems:"stretch"}}>
+        <div className="vibr-drop-form" style={{flex:"1 1 0",minWidth:0,overflowY:"auto"}}>
+          <div className="vibr-drop-heading" style={{padding:"18px 30px",borderBottom:"2px solid var(--border)",position:"sticky",top:0,background:"var(--bg)",zIndex:10,display:"flex",alignItems:"center",gap:12}}> 
             <button onClick={()=>navigate("feed")} style={{background:"transparent",border:"none",color:"var(--muted)",cursor:"pointer",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2}} onMouseEnter={e=>e.target.style.color="var(--white)"} onMouseLeave={e=>e.target.style.color="var(--muted)"}>← BACK</button>
             <div style={{fontFamily:"var(--fd)",fontSize:24,letterSpacing:2}}>DROP YOUR <span style={{color:"var(--red)"}}>BUILD</span></div>
           </div>
-          <div style={{maxWidth:640,margin:"0 auto",padding:"36px 30px 72px"}}>
+          <div className="vibr-drop-fields" style={{width:"100%",maxWidth:640,margin:"0 auto",padding:"36px 30px 72px",boxSizing:"border-box"}}>
             <div style={{display:"flex",flexDirection:"column",gap:24}}>
               <div><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"var(--muted)",marginBottom:7,textTransform:"uppercase"}}>Project Name *</div><input value={form.title} onChange={e=>update("title",e.target.value)} placeholder="What did you build?" style={{...inp,fontSize:16}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/></div>
               <div><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"var(--muted)",marginBottom:7,textTransform:"uppercase"}}>What does it do? *</div><textarea value={form.desc} onChange={e=>update("desc",e.target.value)} placeholder="What problem does it solve? Who is it for?" rows={5} style={{...inp,resize:"none",lineHeight:1.7}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/></div>
@@ -2723,7 +2734,7 @@ function DropPage({navigate,returnTo,userRole,session}){
           </div>
         </div>
         {/* Preview panel */}
-        <div style={{width:320,background:"var(--surface)",borderLeft:"2px solid var(--border)",padding:"26px 20px",position:"sticky",top:0,height:"100vh",overflowY:"auto",flexShrink:0}}>
+        <div className="vibr-drop-preview" style={{width:320,minWidth:0,background:"var(--surface)",borderLeft:"2px solid var(--border)",padding:"26px 20px",position:"sticky",top:0,height:"100vh",overflowY:"auto",flex:"0 0 320px",boxSizing:"border-box"}}>
           <div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"var(--muted)",marginBottom:16,textTransform:"uppercase"}}>// Live Preview</div>
           <div style={{background:"var(--s2)",border:"2px solid var(--border)",padding:20}}>
             <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:11}}><Av name="YOU" color="red" size={32}/><div><div style={{fontWeight:700,fontSize:12}}>Your Name</div><div style={{color:"var(--muted)",fontSize:9,fontFamily:"var(--fm)"}}>@yourhandle · Just now</div></div></div>
