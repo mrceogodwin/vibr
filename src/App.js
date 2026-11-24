@@ -2559,7 +2559,7 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
                 ? <img src={displayAvatar} alt={displayName} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
                 : <div style={{width:"100%",height:"100%",background:"var(--red)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--fd)",fontSize:38,color:"#fff"}}>{(displayName||"?").slice(0,2).toUpperCase()}</div>
               }
-              {session && <AvatarUpload userId={session.user.id} currentUrl={displayAvatar} onSuccess={url=>{toast.success("Photo updated!");}} style={{position:"absolute",bottom:0,right:0}}/>}
+              {isOwnProfile && <AvatarUpload userId={session.user.id} currentUrl={displayAvatar} onSuccess={url=>{toast.success("Photo updated!");}} style={{position:"absolute",bottom:0,right:0}}/>}
             </div>
             <div style={{flex:1,paddingBottom:5}}>
               <div className="vibr-profile-name-row" style={{display:"flex",alignItems:"center",gap:11,marginBottom:3,minWidth:0,flexWrap:"wrap"}}>
@@ -4838,7 +4838,7 @@ export default function App(){
       "premium","spaces","hackathons","companies","admin",
       "investor-dashboard","company-dashboard"
     ]);
-    if(protectedPages.has(p) && !session){
+    if((protectedPages.has(p)||p.startsWith("profile-")) && !session){
       setPage("account-login");
       window.scrollTo(0,0);
       return;
