@@ -2485,14 +2485,19 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
   const [followingCount,setFollowingCount]=useState(0);
   const [liveProfile,setLiveProfile]=useState(null);
   const [livePosts,setLivePosts]=useState([]);
+  const [profileLoading,setProfileLoading]=useState(true);
   const isOwnProfile=!!session && (!targetProfileId || targetProfileId===session.user.id);
 
   useEffect(()=>{
     let alive=true;
     const profileId=targetProfileId || session?.user?.id;
-    setLiveProfile(null); setLivePosts([]); setFollowing(false);
-    if(!profileId) return ()=>{alive=false;};
-    getProfile(profileId).then(p=>{if(alive)setLiveProfile(p);}).catch(()=>{if(alive)setLiveProfile(null);});
+    setLiveProfile(null); setLivePosts([]); setFollowing(false); setFollowerCount(0); setFollowingCount(0);
+    if(!profileId){setProfileLoading(false);return ()=>{alive=false;};}
+    setProfileLoading(true);
+    getProfile(profileId)
+      .then(p=>{if(alive)setLiveProfile(p);})
+      .catch(()=>{if(alive)setLiveProfile(null);})
+      .finally(()=>{if(alive)setProfileLoading(false);});
     getPosts({limit:100}).then(data=>{
       if(!alive)return;
       const mine=(data||[]).filter(p=>p.author_id===profileId);
@@ -2510,7 +2515,7 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
   },[session?.user?.id,targetProfileId]);
 
   const displayProfile=liveProfile||(isOwnProfile?myProfile:null);
-  const displayName=displayProfile?.full_name||displayProfile?.username||"Builder";
+  const displayName=displayProfile?.full_name||displayProfile?.username||(profileLoading?"Loading profile…":"Profile unavailable");
   const displayHandle=displayProfile?.username||"";
   const displayCountry=displayProfile?.country||"";
   const displayBio=displayProfile?.bio||"";
@@ -2535,11 +2540,7 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
     }catch(e){toast.error(e.message||"Could not update follow status.");}
     finally{setFollowBusy(false);}
   };
-  const projects=[
-    {title:"Agric Supply Chain AI",desc:"AI connects farmers to buyers, skips middlemen",tags:[["AI","gold"],["React Native","red"]],votes:248,time:"2 days ago"},
-    {title:"Naira DeFi Wallet",desc:"Non-custodial wallet for Nigerian users",tags:[["Web3","green"],["Solidity","gold"]],votes:189,time:"1 week ago"},
-    {title:"USSD Delivery Tracker",desc:"Track your delivery with any feature phone",tags:[["USSD","red"],["Node.js","gold"]],votes:97,time:"2 weeks ago"},
-  ];
+  const projects=livePosts;
   const activity=[
     {icon:"▲",text:"Upvoted Kofi Osei's Pan-African remittance project",time:"2h ago"},
     {icon:"💬",text:"Commented on Nadia Wanjiru's AI tutor post",time:"5h ago"},
@@ -2588,16 +2589,17 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
             {["projects","activity","sqvad","collabs","bounties"].map(t=><button key={t} onClick={()=>setTab(t)} style={{padding:"11px 20px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,textTransform:"uppercase",background:"transparent",border:"none",cursor:"pointer",color:tab===t?"var(--white)":"var(--muted)",borderBottom:tab===t?"3px solid var(--red)":"3px solid transparent",marginBottom:-2,transition:"color .15s"}}>{t==="sqvad"?"MY SQUAD":t}</button>)}
           </div>
           {tab==="projects"&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:16,paddingBottom:52}}>
-            {projects.map((p,i)=><div key={i} onClick={()=>navigate(`post-${i+1}`)} style={{background:"var(--surface)",border:"2px solid var(--border)",padding:20,transition:"all .2s",cursor:"pointer"}} onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--gold)";e.currentTarget.style.transform="translate(-3px,-3px)";e.currentTarget.style.boxShadow="6px 6px 0 var(--border)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="none";}}>
+            {!profileLoading&&projects.length===0&&<div style={{gridColumn:"1/-1",padding:"24px 18px",border:"1px dashed var(--border)",color:"var(--muted)",fontFamily:"var(--fm)",fontSize:10,letterSpacing:1,textAlign:"center"}}>NO PROJECTS PUBLISHED YET</div>}
+            {projects.map((p,i)=><div key={p.id||i} onClick={()=>navigate(`post-${p.id}`)} style={{background:"var(--surface)",border:"2px solid var(--border)",padding:20,transition:"all .2s",cursor:"pointer"}} onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--gold)";e.currentTarget.style.transform="translate(-3px,-3px)";e.currentTarget.style.boxShadow="6px 6px 0 var(--border)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="none";}}>
               <div style={{fontFamily:"var(--fd)",fontSize:20,letterSpacing:1,marginBottom:6,lineHeight:1.1}}>{p.title}</div>
               <p style={{color:"#888",fontSize:12,lineHeight:1.6,marginBottom:11}}>{p.desc}</p>
               <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:11}}>{p.tags.map(([t,c])=><Tag key={t} label={t} color={c}/>)}</div>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{fontFamily:"var(--fm)",fontSize:10,color:"var(--gold)"}}>▲ {p.votes}</div><div style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)"}}>{p.time}</div></div>
             </div>)}
-            <div onClick={()=>navigate("drop")} style={{background:"transparent",border:"2px dashed var(--border)",padding:20,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",minHeight:150,transition:"all .2s",gap:8}} onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--red)";e.currentTarget.style.background="rgba(209,43,43,.05)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.background="transparent";}}>
+            {isOwnProfile&&<div onClick={()=>navigate("drop")} style={{background:"transparent",border:"2px dashed var(--border)",padding:20,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",cursor:"pointer",minHeight:150,transition:"all .2s",gap:8}} onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--red)";e.currentTarget.style.background="rgba(209,43,43,.05)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.background="transparent";}}>
               <div style={{fontSize:28,color:"var(--muted)"}}>+</div>
               <div style={{fontFamily:"var(--fm)",fontSize:9,color:"var(--muted)",letterSpacing:2,textAlign:"center",textTransform:"uppercase"}}>Drop a new project</div>
-            </div>
+            </div>}
           </div>}
           {tab==="sqvad"&&<div style={{paddingBottom:52}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
