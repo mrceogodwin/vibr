@@ -1,10 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="420" height="126" viewBox="0 0 420 126">
-<defs><linearGradient id="v" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd21a"/><stop offset=".48" stop-color="#ff7900"/><stop offset="1" stop-color="#ff3b18"/></linearGradient></defs>
-<path d="M7 8 H42 Q52 8 58 20 L88 78 Q94 90 104 90 Q114 90 120 78 L151 20 Q157 8 169 8 H199 L143 110 Q129 126 104 126 Q78 126 64 110 Z" fill="url(#v)" transform="translate(0,-5)"/>
-<text x="204" y="93" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="91" font-weight="800" letter-spacing="-5">IBR</text>
-<text x="76" y="121" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="600" letter-spacing="5">CONNECT</text>
-<circle cx="174" cy="116" r="4" fill="#ff7800"/>
-<text x="193" y="121" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="600" letter-spacing="5">DISCOVER</text>
-<circle cx="318" cy="116" r="4" fill="#ff7800"/>
-<text x="337" y="121" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="12" font-weight="600" letter-spacing="4">BUILD</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="150" viewBox="0 0 560 150">
+<defs><linearGradient id="vibrV" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe21a"/><stop offset=".43" stop-color="#ff8a00"/><stop offset="1" stop-color="#ff3b18"/></linearGradient></defs>
+<path d="M10 8 H48 C68 8 79 17 89 38 L126 103 C132 114 140 121 151 121 C162 121 170 114 176 103 L213 38 C224 17 235 8 255 8 H296 L218 132 C202 147 180 150 151 150 C122 150 100 147 84 132 Z" fill="url(#vibrV)" transform="translate(0,-5) scale(.9,1)"/>
+<text x="264" y="112" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="105" font-weight="800" letter-spacing="-6">IBR</text>
+<text x="66" y="146" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="11" font-weight="600" letter-spacing="5.3">CONNECT</text><circle cx="190" cy="142" r="3.7" fill="#ff7900"/>
+<text x="211" y="146" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="11" font-weight="600" letter-spacing="5.3">DISCOVER</text><circle cx="376" cy="142" r="3.7" fill="#ff7900"/>
+<text x="397" y="146" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="11" font-weight="600" letter-spacing="4.5">BUILD</text></svg>
