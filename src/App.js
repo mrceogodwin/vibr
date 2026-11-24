@@ -655,6 +655,20 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
           .vibr-main-content [style*="minWidth: 3"],.vibr-main-content [style*="minWidth:3"]{min-width:0!important}
           .vibr-collab-card{grid-template-columns:minmax(0,1fr)!important}
           .vibr-bottom-dock{left:10px!important;right:10px!important;max-width:calc(100vw - 20px)!important}
+          .vibr-messages-layout{height:calc(100dvh - 88px)!important;min-height:0!important;overflow:hidden!important;display:flex!important}
+          .vibr-message-list{width:100%!important;max-width:100%!important;min-width:0!important;flex:1 1 100%!important;border-right:0!important}
+          .vibr-message-chat{display:none!important;width:100%!important;max-width:100%!important;min-width:0!important;flex:1 1 100%!important;height:100%;overflow:hidden}
+          .vibr-messages-layout.is-chat-open .vibr-message-list{display:none!important}
+          .vibr-messages-layout.is-chat-open .vibr-message-chat{display:flex!important}
+          .vibr-message-chat>div:nth-child(2){min-height:0!important;overflow-y:auto!important;padding:14px!important}
+          .vibr-message-chat>div:last-child{padding:10px!important;padding-bottom:calc(12px + env(safe-area-inset-bottom))!important;gap:7px!important}
+          .vibr-message-chat>div:last-child input{min-width:0!important;width:100%!important}
+          .vibr-message-chat>div:last-child button{padding:10px 12px!important;white-space:nowrap}
+          .vibr-message-chat>div:first-child{padding:10px 12px!important;gap:8px!important;flex-wrap:nowrap!important}
+          .vibr-message-chat>div:first-child>div:last-child{gap:4px!important}
+          .vibr-message-chat>div:first-child>div:last-child button{padding:5px 6px!important;font-size:7px!important;letter-spacing:1px!important}
+          .vibr-message-back{display:inline-flex!important;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);color:var(--text);width:32px;height:32px;font-size:20px;flex:0 0 32px}
+
         }
         @media(min-width:601px) and (max-width:900px){
           .vibr-main-content{width:100%;max-width:100vw;min-width:0;overflow-x:clip!important}
@@ -2314,6 +2328,7 @@ function LeaderboardPage({navigate,returnTo,userRole,session}){
 // ── MESSAGES ──────────────────────────────────────────────────────────────────
 function MessagesPage({navigate,returnTo,userRole,session}){
   const [active,setActive]=useState(DM_CONTACTS[0]);
+  const [mobileChatOpen,setMobileChatOpen]=useState(false);
   const [allMsgs,setAllMsgs]=useState(Object.fromEntries(DM_CONTACTS.map(c=>[c.name,c.msgs])));
   const [input,setInput]=useState("");
   const [composing,setComposing]=useState(false);
@@ -2367,8 +2382,8 @@ function MessagesPage({navigate,returnTo,userRole,session}){
   const filtered=DM_CONTACTS.filter(c=>c.name.toLowerCase().includes(search.toLowerCase())||c.handle.toLowerCase().includes(search.toLowerCase()));
   return (
     <AppShell navigate={navigate} activePage="messages" returnTo={returnTo} userRole={userRole}>
-      <div style={{display:"flex",height:"100vh",overflow:"hidden"}}>
-        <div style={{width:268,borderRight:"2px solid var(--border)",display:"flex",flexDirection:"column",flexShrink:0}}>
+      <div className={`vibr-messages-layout${mobileChatOpen?" is-chat-open":""}`} style={{display:"flex",height:"100vh",overflow:"hidden"}}>
+        <div className="vibr-message-list" style={{width:268,borderRight:"2px solid var(--border)",display:"flex",flexDirection:"column",flexShrink:0}}>
           <div style={{padding:"14px 16px 12px",borderBottom:"2px solid var(--border)"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:9}}>
               <div style={{fontFamily:"var(--fd)",fontSize:22,letterSpacing:2}}>MESSAGES</div>
@@ -2392,7 +2407,7 @@ function MessagesPage({navigate,returnTo,userRole,session}){
           )}
           <div style={{overflowY:"auto",flex:1}}>
                       {filtered.length===0&&<div style={{padding:20,textAlign:"center",color:"var(--muted)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2}}>NO CONVERSATIONS YET</div>}
-          {filtered.map(c=><div key={c.name} onClick={()=>setActive(c)} style={{display:"flex",gap:10,padding:"13px 16px",borderBottom:"1px solid var(--border)",cursor:"pointer",transition:"background .15s",background:active.name===c.name?"var(--s2)":"transparent",borderLeft:active.name===c.name?"3px solid var(--red)":"3px solid transparent"}} onMouseEnter={e=>{if(active.name!==c.name)e.currentTarget.style.background="var(--surface)";}} onMouseLeave={e=>{if(active.name!==c.name)e.currentTarget.style.background="transparent";}}>
+          {filtered.map(c=><div key={c.name} onClick={()=>{setActive(c);setMobileChatOpen(true);}} style={{display:"flex",gap:10,padding:"13px 16px",borderBottom:"1px solid var(--border)",cursor:"pointer",transition:"background .15s",background:active.name===c.name?"var(--s2)":"transparent",borderLeft:active.name===c.name?"3px solid var(--red)":"3px solid transparent"}} onMouseEnter={e=>{if(active.name!==c.name)e.currentTarget.style.background="var(--surface)";}} onMouseLeave={e=>{if(active.name!==c.name)e.currentTarget.style.background="transparent";}}>
               <div style={{position:"relative"}}><Av name={c.av} color={c.avc} size={38}/>{c.online&&<div style={{position:"absolute",bottom:0,right:0,width:9,height:9,background:"var(--gr2)",borderRadius:"50%",border:"2px solid var(--bg)"}}/>}</div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}><span style={{fontWeight:700,fontSize:12}}>{c.name} {c.flag}</span><span style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)"}}>{c.time}</span></div>
@@ -2402,8 +2417,9 @@ function MessagesPage({navigate,returnTo,userRole,session}){
             </div>)}
           </div>
         </div>
-        <div style={{flex:1,display:"flex",flexDirection:"column"}}>
+        <div className="vibr-message-chat" style={{flex:1,display:"flex",flexDirection:"column",minWidth:0}}>
           <div style={{padding:"13px 22px",borderBottom:"2px solid var(--border)",display:"flex",alignItems:"center",gap:11,background:"var(--surface)"}}>
+            <button className="vibr-message-back" onClick={()=>setMobileChatOpen(false)} aria-label="Back to conversations">←</button>
             <div style={{position:"relative"}}><Av name={active.av} color={active.avc} size={38}/>{active.online&&<div style={{position:"absolute",bottom:0,right:0,width:9,height:9,background:"var(--gr2)",borderRadius:"50%",border:"2px solid var(--surface)"}}/>}</div>
             <div>
               <div style={{fontWeight:700,fontSize:14}}>{active.name} {active.flag}</div>
