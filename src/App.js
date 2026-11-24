@@ -2995,7 +2995,7 @@ function DropPage({navigate,returnTo,userRole,session,initialSeriesId=null}){
     if(!file)return;
     if(file.type&&!file.type.startsWith("video/")){toast.error("Choose a valid video file.");return;}
     const maxBytes=30*1024*1024*1024;
-    if(file.size>maxBytes){toast.error("This video is larger than Cloudflare Stream's default 30 GB upload limit.");return;}
+    if(file.size>=maxBytes){toast.error("Choose a video smaller than Cloudflare Stream's 30 GB file limit.");return;}
     try{
       const duration=await getLocalVideoDuration(file);
       if(duration>3600){toast.error("Videos must be one hour or shorter.");return;}
