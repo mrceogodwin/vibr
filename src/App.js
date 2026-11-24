@@ -2800,114 +2800,247 @@ function ProfilePage({navigate,returnTo,userRole,session,profile:myProfile,targe
 }
 
 // ── DROP ──────────────────────────────────────────────────────────────────────
+
 function DropPage({navigate,returnTo,userRole,session}){
-  const [form,setForm]=useState({title:"",desc:"",collab:false,open:false,bounty:false});
+  const [form,setForm]=useState({title:"",desc:"",collab:false,open:false,bounty:false,demoUrl:"",githubUrl:""});
   const [tags,setTags]=useState([]);
   const [needs,setNeeds]=useState([]);
   const [dropped,setDropped]=useState(false);
   const [dropping,setDropping]=useState(false);
+  const [mediaFile,setMediaFile]=useState(null);
+  const [mediaPreview,setMediaPreview]=useState("");
+  const [seriesMode,setSeriesMode]=useState("none");
+  const [seriesTitle,setSeriesTitle]=useState("");
+  const [seriesDescription,setSeriesDescription]=useState("");
+  const [episodeTitle,setEpisodeTitle]=useState("");
+  const [selectedSeriesId,setSelectedSeriesId]=useState("");
+  const [mySeries,setMySeries]=useState([]);
+  const [createdPostId,setCreatedPostId]=useState(null);
+  const [createdSeriesId,setCreatedSeriesId]=useState(null);
+  const [uploading,setUploading]=useState(false);
   const update=(k,v)=>setForm(f=>({...f,[k]:v}));
   const inp={width:"100%",padding:"11px 13px",background:"var(--s2)",border:"2px solid var(--border)",color:"var(--text)",fontSize:13,outline:"none",fontFamily:"var(--fb)",transition:"border-color .2s",borderRadius:0};
+
+  useEffect(()=>{
+    let active=true;
+    if(!session?.user?.id)return;
+    supabase.from("project_series").select("id,title,description,updated_at")
+      .eq("author_id",session.user.id).eq("status","active")
+      .order("updated_at",{ascending:false})
+      .then(({data,error})=>{if(active&&!error)setMySeries(data||[]);});
+    return ()=>{active=false;};
+  },[session?.user?.id]);
+
+  useEffect(()=>()=>{if(mediaPreview)URL.revokeObjectURL(mediaPreview);},[mediaPreview]);
+
+  const selectVideo=e=>{
+    const file=e.target.files?.[0];
+    e.target.value="";
+    if(!file)return;
+    const allowed=["video/mp4","video/quicktime","video/webm","video/x-m4v"];
+    if(!allowed.includes(file.type)){toast.error("Choose an MP4, MOV or WebM video.");return;}
+    if(file.size>50*1024*1024){toast.error("Videos must be 50 MB or smaller.");return;}
+    setMediaFile(file);
+    setMediaPreview(URL.createObjectURL(file));
+  };
+
+  const resetDrop=()=>{
+    setDropped(false);setDropping(false);setUploading(false);
+    setForm({title:"",desc:"",collab:false,open:false,bounty:false,demoUrl:"",githubUrl:""});
+    setTags([]);setNeeds([]);setMediaFile(null);setMediaPreview("");
+    setSeriesMode("none");setSeriesTitle("");setSeriesDescription("");setEpisodeTitle("");
+    setSelectedSeriesId("");setCreatedPostId(null);setCreatedSeriesId(null);
+  };
+
   const handleDrop=async()=>{
     if(!form.title.trim())return;
-    if(!session){navigate("login");return;}
+    if(!session?.user?.id){navigate("login");return;}
+    if(seriesMode==="new"&&!seriesTitle.trim()){toast.error("Give your project series a title.");return;}
+    if(seriesMode==="existing"&&!selectedSeriesId){toast.error("Choose the project series you want to continue.");return;}
     setDropping(true);
+    let createdSeries=null,uploadedPath=null;
     try{
+      let seriesId=seriesMode==="existing"?selectedSeriesId:null;
+      if(seriesMode==="new"){
+        const {data,error}=await supabase.from("project_series").insert({
+          author_id:session.user.id,title:seriesTitle.trim(),
+          description:seriesDescription.trim()||form.desc.trim(),status:"active"
+        }).select().single();
+        if(error)throw error;
+        seriesId=data.id;createdSeries=data;
+      }
+      let episodeNumber=null;
+      if(seriesId){
+        const {data,error}=await supabase.from("posts").select("episode_number")
+          .eq("series_id",seriesId).order("episode_number",{ascending:false}).limit(1);
+        if(error)throw error;
+        episodeNumber=(data?.[0]?.episode_number||0)+1;
+      }
+      let mediaUrl=null,mediaType=null;
+      if(mediaFile){
+        setUploading(true);
+        const extension=(mediaFile.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";
+        uploadedPath=session.user.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"."+extension;
+        const {error:uploadError}=await supabase.storage.from("project-videos").upload(uploadedPath,mediaFile,{
+          cacheControl:"3600",upsert:false,contentType:mediaFile.type
+        });
+        if(uploadError)throw uploadError;
+        mediaUrl=supabase.storage.from("project-videos").getPublicUrl(uploadedPath).data.publicUrl;
+        mediaType=mediaFile.type;
+        setUploading(false);
+      }
       const {data,error}=await supabase.from("posts").insert({
-        author_id:session.user.id,
-        title:form.title,
-        description:form.desc,
-        tags,
-        open_source:form.open,
-        open_collab:form.collab,
-        has_bounty:form.bounty,
+        author_id:session.user.id,title:form.title.trim(),description:form.desc.trim(),
+        tags,open_source:form.open,open_collab:form.collab,has_bounty:form.bounty,
+        demo_url:form.demoUrl.trim()||null,github_url:form.githubUrl.trim()||null,
+        media_url:mediaUrl,media_type:mediaType,series_id:seriesId,
+        episode_number:episodeNumber,episode_title:seriesId?(episodeTitle.trim()||("Week "+episodeNumber)):null
       }).select().single();
-      if(error) throw error;
-      toast.success("Build dropped! 🔥 Africa can see it now.");
-      setDropped(true);
+      if(error)throw error;
+      setCreatedPostId(data.id);setCreatedSeriesId(seriesId);setDropped(true);
+      if(seriesId)await supabase.from("project_series").update({updated_at:new Date().toISOString()}).eq("id",seriesId);
+      toast.success(seriesId?"Project update published. Your series is growing!":"Build dropped! Africa can see it now.");
     }catch(e){
-      toast.error(e.message||"Drop failed — try again.");
-      console.error("Drop error:",e.message);
-      setDropping(false);
-    }finally{setDropping(false);}
+      if(uploadedPath){try{await supabase.storage.from("project-videos").remove([uploadedPath]);}catch{}}
+      if(createdSeries?.id){try{await supabase.from("project_series").delete().eq("id",createdSeries.id);}catch{}}
+      toast.error(e?.message||"Drop failed — try again.");
+      console.error("Drop error:",e);
+    }finally{setDropping(false);setUploading(false);}
   };
-  if(dropped) return (
+
+  if(dropped)return(
     <AppShell navigate={navigate} activePage="drop" returnTo={returnTo} userRole={userRole}>
-      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"80vh",padding:"40px",textAlign:"center"}}>
-        <div style={{fontSize:72,marginBottom:20,animation:"fadeUp .5s ease both"}}>🔥</div>
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:"80vh",padding:40,textAlign:"center"}}>
+        <div style={{fontSize:72,marginBottom:20,animation:"fadeUp .5s ease both"}}>{createdSeriesId?"🎬":"🔥"}</div>
         <div className="fu1" style={{fontFamily:"var(--fd)",fontSize:52,letterSpacing:2,lineHeight:1,marginBottom:12}}>
           {form.title.toUpperCase()||"YOUR BUILD"}<br/><span style={{color:"var(--red)"}}>IS LIVE.</span>
         </div>
-        <p className="fu2" style={{color:"var(--muted)",fontSize:15,lineHeight:1.8,maxWidth:420,marginBottom:10}}>
-          Your project is now live on the VIBR feed. 12,000+ builders and investors are watching. Go get those upvotes. 🌍
+        <p className="fu2" style={{color:"var(--muted)",fontSize:15,lineHeight:1.8,maxWidth:440,marginBottom:22}}>
+          {createdSeriesId?"Your project update is now part of its public build journey. Viewers can follow every episode in order.":"Your project is now live on the VIBR feed. Let Africa see what you're building."}
         </p>
         <div className="fu3" style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center",marginBottom:32}}>
           {tags.slice(0,4).map((t,i)=><Tag key={t} label={t} color={["gold","red","green"][i%3]}/>)}
           {form.collab&&<Tag label="🤝 Open Collab" color="green"/>}
           {form.open&&<Tag label="🌍 Open Source" color="gold"/>}
           {form.bounty&&<Tag label="💰 Bounty" color="red"/>}
+          {createdSeriesId&&<Tag label="PROJECT SERIES" color="green"/>}
         </div>
         <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
-          <button onClick={()=>navigate("feed")} style={{background:"var(--red)",color:"#fff",border:"2px solid var(--red)",padding:"12px 28px",fontFamily:"var(--fd)",fontSize:18,letterSpacing:3,cursor:"pointer",transition:"all .15s"}} onMouseEnter={e=>{e.target.style.background="transparent";e.target.style.color="var(--red)";}} onMouseLeave={e=>{e.target.style.background="var(--red)";e.target.style.color="#fff";}}>VIEW ON FEED →</button>
-          <button onClick={()=>{setDropped(false);setForm({title:"",desc:"",collab:false,open:false,bounty:false});setTags([]);setNeeds([]);}} style={{background:"transparent",border:"2px solid var(--border)",color:"var(--muted)",padding:"12px 28px",fontFamily:"var(--fm)",fontSize:10,letterSpacing:3,cursor:"pointer",textTransform:"uppercase",transition:"all .2s"}} onMouseEnter={e=>{e.target.style.borderColor="var(--gold)";e.target.style.color="var(--gold)";}} onMouseLeave={e=>{e.target.style.borderColor="var(--border)";e.target.style.color="var(--muted)";}}>Drop Another</button>
+          {createdPostId&&<button onClick={()=>navigate("post-"+createdPostId)} style={{background:"var(--red)",color:"#fff",border:"2px solid var(--red)",padding:"12px 28px",fontFamily:"var(--fd)",fontSize:18,letterSpacing:3,cursor:"pointer"}}>VIEW PROJECT →</button>}
+          <button onClick={()=>navigate("feed")} style={{background:"transparent",border:"2px solid var(--border)",color:"var(--muted)",padding:"12px 24px",fontFamily:"var(--fm)",fontSize:10,letterSpacing:2,cursor:"pointer"}}>VIEW FEED</button>
+          <button onClick={resetDrop} style={{background:"transparent",border:"2px solid var(--border)",color:"var(--muted)",padding:"12px 24px",fontFamily:"var(--fm)",fontSize:10,letterSpacing:2,cursor:"pointer"}}>DROP ANOTHER</button>
         </div>
       </div>
     </AppShell>
   );
-  return (
+
+  return(
     <AppShell navigate={navigate} activePage="drop" returnTo={returnTo} userRole={userRole}>
       <div className="vibr-drop-layout" style={{display:"flex",width:"100%",minWidth:0,alignItems:"stretch"}}>
         <div className="vibr-drop-form" style={{flex:"1 1 0",minWidth:0,overflowY:"auto"}}>
-          <div className="vibr-drop-heading" style={{padding:"18px 30px",borderBottom:"2px solid var(--border)",position:"sticky",top:0,background:"var(--bg)",zIndex:10,display:"flex",alignItems:"center",gap:12}}> 
-            <button onClick={()=>navigate("feed")} style={{background:"transparent",border:"none",color:"var(--muted)",cursor:"pointer",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2}} onMouseEnter={e=>e.target.style.color="var(--white)"} onMouseLeave={e=>e.target.style.color="var(--muted)"}>← BACK</button>
+          <div className="vibr-drop-heading" style={{padding:"18px 30px",borderBottom:"2px solid var(--border)",position:"sticky",top:0,background:"var(--bg)",zIndex:10,display:"flex",alignItems:"center",gap:12}}>
+            <button onClick={()=>navigate("feed")} style={{background:"transparent",border:"none",color:"var(--muted)",cursor:"pointer",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2}}>← BACK</button>
             <div style={{fontFamily:"var(--fd)",fontSize:24,letterSpacing:2}}>DROP YOUR <span style={{color:"var(--red)"}}>BUILD</span></div>
           </div>
-          <div className="vibr-drop-fields" style={{width:"100%",maxWidth:640,margin:"0 auto",padding:"36px 30px 72px",boxSizing:"border-box"}}>
-            <div style={{display:"flex",flexDirection:"column",gap:24}}>
+          <div className="vibr-drop-fields" style={{width:"100%",maxWidth:640,margin:"0 auto",padding:"30px clamp(16px,3vw,30px) 72px",boxSizing:"border-box"}}>
+            <div style={{display:"flex",flexDirection:"column",gap:22}}>
               <div><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"var(--muted)",marginBottom:7,textTransform:"uppercase"}}>Project Name *</div><input value={form.title} onChange={e=>update("title",e.target.value)} placeholder="What did you build?" style={{...inp,fontSize:16}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/></div>
-              <div><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"var(--muted)",marginBottom:7,textTransform:"uppercase"}}>What does it do? *</div><textarea value={form.desc} onChange={e=>update("desc",e.target.value)} placeholder="What problem does it solve? Who is it for?" rows={5} style={{...inp,resize:"none",lineHeight:1.7}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/></div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                {[["Demo Link","https://yourapp.com"],["GitHub Link","https://github.com/you/repo"]].map(([l,p])=><div key={l}><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:5,textTransform:"uppercase"}}>{l}</div><input placeholder={p} style={inp} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/></div>)}
+              <div><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"var(--muted)",marginBottom:7,textTransform:"uppercase"}}>What does it do? *</div><textarea value={form.desc} onChange={e=>update("desc",e.target.value)} placeholder="What problem does it solve? Who is it for?" rows={5} style={{...inp,resize:"vertical",lineHeight:1.7}} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/></div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:12}}>
+                {[[ "Demo Link","https://yourapp.com","demoUrl"],["GitHub Link","https://github.com/you/repo","githubUrl"]].map(([label,placeholder,key])=><div key={key}><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:5,textTransform:"uppercase"}}>{label}</div><input value={form[key]} onChange={e=>update(key,e.target.value)} placeholder={placeholder} style={inp} onFocus={e=>e.target.style.borderColor="var(--gold)"} onBlur={e=>e.target.style.borderColor="var(--border)"}/></div>)}
               </div>
-              <div><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"var(--muted)",marginBottom:8,textTransform:"uppercase"}}>Tech Stack</div><div style={{display:"flex",flexWrap:"wrap",gap:7}}>{STACKS.slice(0,16).map(s=><button key={s} onClick={()=>setTags(p=>p.includes(s)?p.filter(x=>x!==s):[...p,s])} style={{padding:"6px 12px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,background:tags.includes(s)?"var(--red)":"var(--s2)",color:tags.includes(s)?"#fff":"var(--muted)",border:`2px solid ${tags.includes(s)?"var(--red)":"var(--border)"}`,cursor:"pointer",transition:"all .15s"}}>{s}{tags.includes(s)?" ✓":""}</button>)}</div></div>
+
+              <section style={{background:"var(--surface)",border:"2px solid var(--border)",padding:18}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginBottom:7}}>
+                  <div style={{fontFamily:"var(--fd)",fontSize:21,letterSpacing:2}}>PROJECT VIDEO</div>
+                  <span style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--green)",letterSpacing:1}}>OPTIONAL MEDIA</span>
+                </div>
+                <p style={{fontSize:11,color:"var(--muted)",lineHeight:1.6,marginBottom:12}}>Show the product working, share a screen recording or document your latest build update.</p>
+                <label style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,minHeight:58,padding:14,border:"1px dashed var(--gold)",background:"var(--s2)",cursor:"pointer",fontFamily:"var(--fm)",fontSize:10,letterSpacing:1.2,color:"var(--text)"}}>
+                  <span style={{fontSize:22}}>＋</span>{mediaFile?mediaFile.name:"CHOOSE VIDEO FILE"}
+                  <input type="file" accept="video/mp4,video/quicktime,video/webm,video/x-m4v" onChange={selectVideo} style={{display:"none"}}/>
+                </label>
+                <div style={{display:"flex",justifyContent:"space-between",gap:10,marginTop:8,color:"var(--muted)",fontFamily:"var(--fm)",fontSize:8}}>
+                  <span>MP4 · MOV · WEBM</span><span>MAX 50 MB</span>
+                </div>
+                {mediaPreview&&<div style={{marginTop:14}}>
+                  <video src={mediaPreview} controls playsInline preload="metadata" style={{width:"100%",maxHeight:300,display:"block",background:"#000"}}/>
+                  <button type="button" onClick={()=>{setMediaFile(null);setMediaPreview("");}} style={{marginTop:7,border:0,background:"transparent",color:"var(--red)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,cursor:"pointer"}}>REMOVE VIDEO ×</button>
+                </div>}
+                {uploading&&<div style={{marginTop:10,color:"var(--gold)",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1}}>UPLOADING VIDEO TO SUPABASE STORAGE…</div>}
+              </section>
+
+              <section style={{background:"var(--surface)",border:"2px solid var(--border)",padding:18}}>
+                <div style={{fontFamily:"var(--fd)",fontSize:21,letterSpacing:2,marginBottom:5}}>BUILD JOURNEY</div>
+                <p style={{fontSize:11,color:"var(--muted)",lineHeight:1.6,marginBottom:14}}>Publish a single Drop or turn your progress into an ongoing project series.</p>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(145px,1fr))",gap:7}}>
+                  {[
+                    ["none","ONE-TIME DROP","Publish a standalone project update"],
+                    ["new","START A SERIES","Create a new build journey"],
+                    ["existing","CONTINUE SERIES","Add the next episode to a journey"]
+                  ].map(([value,label,sub])=><button type="button" key={value} onClick={()=>setSeriesMode(value)} aria-pressed={seriesMode===value} style={{padding:"12px 10px",textAlign:"left",background:seriesMode===value?"rgba(217,43,43,.10)":"var(--s2)",border:"2px solid "+(seriesMode===value?"var(--red)":"var(--border)"),color:"var(--text)",cursor:"pointer",minHeight:82}}>
+                    <b style={{display:"block",fontFamily:"var(--fd)",fontSize:15,letterSpacing:1,color:seriesMode===value?"var(--red)":"var(--white)"}}>{label}</b>
+                    <small style={{display:"block",marginTop:5,color:"var(--muted)",fontSize:9,lineHeight:1.45}}>{sub}</small>
+                  </button>)}
+                </div>
+                {seriesMode==="new"&&<div style={{display:"grid",gap:12,marginTop:14,animation:"fadeUp .25s ease both"}}>
+                  <div><label style={{display:"block",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:6}}>SERIES TITLE *</label><input value={seriesTitle} onChange={e=>setSeriesTitle(e.target.value)} placeholder="e.g. Building VIBR — From Idea to Launch" style={inp}/></div>
+                  <div><label style={{display:"block",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:6}}>JOURNEY DESCRIPTION</label><textarea value={seriesDescription} onChange={e=>setSeriesDescription(e.target.value)} rows={2} placeholder="What will viewers follow in this journey?" style={{...inp,resize:"vertical"}}/></div>
+                  <div><label style={{display:"block",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:6}}>FIRST UPDATE TITLE</label><input value={episodeTitle} onChange={e=>setEpisodeTitle(e.target.value)} placeholder="Week 1 — The Beginning" style={inp}/></div>
+                </div>}
+                {seriesMode==="existing"&&<div style={{display:"grid",gap:12,marginTop:14,animation:"fadeUp .25s ease both"}}>
+                  <div><label style={{display:"block",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:6}}>SELECT YOUR SERIES *</label>
+                    <select value={selectedSeriesId} onChange={e=>setSelectedSeriesId(e.target.value)} style={{...inp,background:"var(--s2)"}}>
+                      <option value="">Choose a project series</option>{mySeries.map(s=><option key={s.id} value={s.id}>{s.title}</option>)}
+                    </select>
+                    {mySeries.length===0&&<small style={{display:"block",marginTop:7,color:"var(--muted)",fontSize:10}}>You haven't started a series yet. Choose Start a Series first.</small>}
+                  </div>
+                  <div><label style={{display:"block",fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:6}}>NEXT UPDATE TITLE</label><input value={episodeTitle} onChange={e=>setEpisodeTitle(e.target.value)} placeholder="Week 2 — First Prototype" style={inp}/></div>
+                </div>}
+              </section>
+
+              <div><div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"var(--muted)",marginBottom:8,textTransform:"uppercase"}}>Tech Stack</div><div style={{display:"flex",flexWrap:"wrap",gap:7}}>{STACKS.slice(0,16).map(s=><button type="button" key={s} onClick={()=>setTags(p=>p.includes(s)?p.filter(x=>x!==s):[...p,s])} style={{padding:"6px 12px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,background:tags.includes(s)?"var(--red)":"var(--s2)",color:tags.includes(s)?"#fff":"var(--muted)",border:"2px solid "+(tags.includes(s)?"var(--red)":"var(--border)"),cursor:"pointer"}}>{s}{tags.includes(s)?" ✓":""}</button>)}</div></div>
+
               <div style={{background:"var(--surface)",border:"2px solid var(--border)",padding:22}}>
                 <div style={{fontFamily:"var(--fd)",fontSize:22,letterSpacing:2,marginBottom:16,color:"var(--gold)"}}>COLLAB SETTINGS</div>
-                {[["🤝","Open for Collaboration","Let builders join this project","collab"],["🌍","Open Source","Make this open source on VIBR","open"],["💰","Posting a Bounty","Pay for specific help needed","bounty"]].map(([icon,title,sub,key])=><div key={key} onClick={()=>update(key,!form[key])} style={{display:"flex",alignItems:"center",gap:12,padding:"12px",background:form[key]?"rgba(209,43,43,.08)":"var(--s2)",border:`2px solid ${form[key]?"var(--red)":"var(--border)"}`,cursor:"pointer",transition:"all .15s",marginBottom:8}}>
-                  <span style={{fontSize:18}}>{icon}</span>
-                  <div style={{flex:1}}><div style={{fontWeight:700,fontSize:13}}>{title}</div><div style={{color:"var(--muted)",fontSize:10,fontFamily:"var(--fm)"}}>{sub}</div></div>
-                  <div style={{width:40,height:20,background:form[key]?"var(--red)":"var(--border)",borderRadius:10,position:"relative",transition:"background .2s",flexShrink:0}}><div style={{width:14,height:14,background:"#fff",borderRadius:"50%",position:"absolute",top:3,left:form[key]?23:3,transition:"left .2s"}}/></div>
+                {[[ "🤝","Open for Collaboration","Let builders join this project","collab"],["🌍","Open Source","Make this open source on VIBR","open"],["💰","Posting a Bounty","Pay for specific help needed","bounty"]].map(([icon,title,sub,key])=><div key={key} onClick={()=>update(key,!form[key])} style={{display:"flex",alignItems:"center",gap:12,padding:12,background:form[key]?"rgba(209,43,43,.08)":"var(--s2)",border:"2px solid "+(form[key]?"var(--red)":"var(--border)"),cursor:"pointer",marginBottom:8}}>
+                  <span style={{fontSize:18}}>{icon}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:13}}>{title}</div><div style={{color:"var(--muted)",fontSize:10,fontFamily:"var(--fm)"}}>{sub}</div></div>
+                  <div style={{width:40,height:20,background:form[key]?"var(--red)":"var(--border)",borderRadius:10,position:"relative",flexShrink:0}}><div style={{width:14,height:14,background:"#fff",borderRadius:"50%",position:"absolute",top:3,left:form[key]?23:3}}/></div>
                 </div>)}
-                {form.collab&&<div style={{marginTop:14,animation:"fadeUp .3s ease both"}}>
-                  <div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:9,textTransform:"uppercase"}}>Roles needed:</div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{["Frontend Dev","Backend Dev","UI/UX Designer","Mobile Dev","ML Engineer","Co-founder","DevOps","Marketing"].map(n=><button key={n} onClick={()=>setNeeds(p=>p.includes(n)?p.filter(x=>x!==n):[...p,n])} style={{padding:"6px 12px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,background:needs.includes(n)?"var(--green)":"transparent",color:needs.includes(n)?"#fff":"var(--muted)",border:`2px solid ${needs.includes(n)?"var(--green)":"var(--border)"}`,cursor:"pointer",transition:"all .15s"}}>{n}</button>)}</div>
+                {form.collab&&<div style={{marginTop:14}}>
+                  <div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:2,color:"var(--muted)",marginBottom:9}}>ROLES NEEDED</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>{["Frontend Dev","Backend Dev","UI/UX Designer","Mobile Dev","ML Engineer","Co-founder","DevOps","Marketing"].map(n=><button type="button" key={n} onClick={()=>setNeeds(p=>p.includes(n)?p.filter(x=>x!==n):[...p,n])} style={{padding:"6px 12px",fontFamily:"var(--fm)",fontSize:9,letterSpacing:1,background:needs.includes(n)?"var(--green)":"transparent",color:needs.includes(n)?"#fff":"var(--muted)",border:"2px solid "+(needs.includes(n)?"var(--green)":"var(--border)"),cursor:"pointer"}}>{n}</button>)}</div>
                 </div>}
               </div>
-              <button onClick={handleDrop} disabled={!form.title.trim()||dropping} style={{width:"100%",background:dropping?"var(--s2)":form.title.trim()?"var(--red)":"var(--border)",color:dropping||!form.title.trim()?"var(--muted)":"#fff",border:`2.5px solid ${dropping||!form.title.trim()?"var(--border)":"var(--red)"}`,padding:"15px",fontFamily:"var(--fd)",fontSize:22,letterSpacing:4,cursor:form.title.trim()&&!dropping?"pointer":"not-allowed",transition:"all .15s",display:"flex",alignItems:"center",justifyContent:"center",gap:10}} onMouseEnter={e=>{if(form.title.trim()&&!dropping){e.currentTarget.style.background="transparent";e.currentTarget.style.color="var(--red)";}}} onMouseLeave={e=>{if(form.title.trim()&&!dropping){e.currentTarget.style.background="var(--red)";e.currentTarget.style.color="#fff";}}}>
-  {dropping?<><div style={{width:18,height:18,border:"3px solid var(--red)",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 1s linear infinite"}}/> DROPPING...</>:"🔥 DROP IT TO THE WORLD"}
-</button>
+
+              <button type="button" onClick={handleDrop} disabled={!form.title.trim()||dropping||(seriesMode==="new"&&!seriesTitle.trim())||(seriesMode==="existing"&&!selectedSeriesId)} style={{width:"100%",background:dropping?"var(--s2)":form.title.trim()?"var(--red)":"var(--border)",color:dropping||!form.title.trim()?"var(--muted)":"#fff",border:"2.5px solid "+(dropping||!form.title.trim()?"var(--border)":"var(--red)"),padding:15,fontFamily:"var(--fd)",fontSize:22,letterSpacing:4,cursor:form.title.trim()&&!dropping?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+                {dropping?<><Spinner size={18}/>{uploading?"UPLOADING VIDEO…":"PUBLISHING DROP…"}</>:"🔥 DROP IT TO THE WORLD"}
+              </button>
+              <p style={{color:"var(--muted)",fontSize:9,fontFamily:"var(--fm)",textAlign:"center",lineHeight:1.5}}>Videos are stored in Supabase Storage. Public series episodes are ordered by their episode number.</p>
             </div>
           </div>
         </div>
-        {/* Preview panel */}
-        <div className="vibr-drop-preview" style={{width:320,minWidth:0,background:"var(--surface)",borderLeft:"2px solid var(--border)",padding:"26px 20px",position:"sticky",top:0,height:"100vh",overflowY:"auto",flex:"0 0 320px",boxSizing:"border-box"}}>
+
+        <aside className="vibr-drop-preview" style={{width:320,minWidth:0,background:"var(--surface)",borderLeft:"2px solid var(--border)",padding:"26px 20px",position:"sticky",top:0,height:"100vh",overflowY:"auto",flex:"0 0 320px",boxSizing:"border-box"}}>
           <div style={{fontFamily:"var(--fm)",fontSize:9,letterSpacing:3,color:"var(--muted)",marginBottom:16,textTransform:"uppercase"}}>// Live Preview</div>
-          <div style={{background:"var(--s2)",border:"2px solid var(--border)",padding:20}}>
+          <div style={{background:"var(--s2)",border:"2px solid var(--border)",padding:18}}>
             <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:11}}><Av name="YOU" color="red" size={32}/><div><div style={{fontWeight:700,fontSize:12}}>Your Name</div><div style={{color:"var(--muted)",fontSize:9,fontFamily:"var(--fm)"}}>@yourhandle · Just now</div></div></div>
             <div style={{fontFamily:"var(--fd)",fontSize:18,letterSpacing:1,marginBottom:6,lineHeight:1.2,color:form.title?"var(--white)":"var(--muted)",minHeight:24}}>{form.title||"Your project title..."}</div>
-            <p style={{color:form.desc?"#aaa":"var(--border)",fontSize:12,lineHeight:1.6,marginBottom:11,minHeight:42}}>{form.desc||"Your description..."}</p>
+            <p style={{color:form.desc?"var(--text)":"var(--muted)",fontSize:12,lineHeight:1.6,marginBottom:11,minHeight:42}}>{form.desc||"Your description..."}</p>
+            {mediaPreview&&<video src={mediaPreview} muted playsInline preload="metadata" style={{width:"100%",maxHeight:155,background:"#000",marginBottom:10}}/>}
+            {seriesMode!=="none"&&<div style={{marginBottom:10,padding:9,border:"1px solid var(--green)",color:"var(--green)",fontFamily:"var(--fm)",fontSize:9}}>{seriesMode==="new"?(seriesTitle||"NEW PROJECT SERIES"):(mySeries.find(s=>s.id===selectedSeriesId)?.title||"PROJECT SERIES")} · {seriesMode==="new"?"WEEK 1":"NEXT EPISODE"}</div>}
             {tags.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:11}}>{tags.slice(0,4).map((t,i)=><Tag key={t} label={t} color={["gold","red","green"][i%3]}/>)}</div>}
             <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
               {form.collab&&<span style={{background:"var(--green)",color:"#fff",fontSize:8,padding:"2px 7px",fontFamily:"var(--fm)"}}>🤝 OPEN COLLAB</span>}
               {form.open&&<span style={{background:"var(--gold)",color:"#000",fontSize:8,padding:"2px 7px",fontFamily:"var(--fm)"}}>🌍 OPEN SOURCE</span>}
               {form.bounty&&<span style={{background:"var(--red)",color:"#fff",fontSize:8,padding:"2px 7px",fontFamily:"var(--fm)"}}>💰 BOUNTY</span>}
             </div>
-            <div style={{display:"flex",justifyContent:"space-between",marginTop:12,paddingTop:11,borderTop:"1px solid var(--border)"}}><div style={{fontFamily:"var(--fm)",fontSize:10,color:"var(--gold)"}}>▲ 0</div><div style={{fontFamily:"var(--fm)",fontSize:9,color:"var(--muted)"}}>💬 0 Comments</div></div>
           </div>
           <div style={{marginTop:16,padding:12,background:"rgba(240,165,0,.06)",border:"2px solid rgba(240,165,0,.2)"}}>
-            <div style={{fontFamily:"var(--fm)",fontSize:8,letterSpacing:2,color:"var(--gold)",marginBottom:7,textTransform:"uppercase"}}>💡 Tips to get upvoted</div>
-            {["Be specific about the problem you solve","Mention your target African market","Add a live demo link","Say if you want collaborators"].map(t=><div key={t} style={{fontSize:11,color:"#888",padding:"4px 0",borderBottom:"1px solid rgba(255,255,255,.05)",lineHeight:1.4}}>→ {t}</div>)}
+            <div style={{fontFamily:"var(--fm)",fontSize:8,letterSpacing:2,color:"var(--gold)",marginBottom:7}}>💡 TIPS TO GET UPVOTED</div>
+            {["Be specific about the problem you solve","Mention your target African market","Add a live demo link","Document progress with a video"].map(t=><div key={t} style={{fontSize:11,color:"var(--muted)",padding:"4px 0",borderBottom:"1px solid var(--border)",lineHeight:1.4}}>→ {t}</div>)}
           </div>
-        </div>
+        </aside>
       </div>
     </AppShell>
   );
