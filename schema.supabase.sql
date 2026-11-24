@@ -50,6 +50,17 @@ CREATE TABLE IF NOT EXISTS profiles (
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- ─── PROJECT SERIES (build-in-public journeys) ────────────────────────────────
+CREATE TABLE IF NOT EXISTS project_series (
+  id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  author_id   UUID        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  title       TEXT        NOT NULL,
+  description TEXT,
+  status      TEXT        NOT NULL DEFAULT 'active' CHECK (status IN ('active','completed','paused')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ─── POSTS (project drops) ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS posts (
   id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -64,6 +75,11 @@ CREATE TABLE IF NOT EXISTS posts (
   image_url   TEXT,
   demo_url    TEXT,
   github_url  TEXT,
+  media_url   TEXT,
+  media_type  TEXT,
+  series_id   UUID REFERENCES project_series(id) ON DELETE SET NULL,
+  episode_number INTEGER,
+  episode_title TEXT,
   vote_count  INTEGER     NOT NULL DEFAULT 0,
   comment_count INTEGER   NOT NULL DEFAULT 0,
   view_count  INTEGER     NOT NULL DEFAULT 0,
@@ -511,6 +527,7 @@ CREATE TRIGGER on_message
 -- ─────────────────────────────────────────────────────────────────────────────
 
 ALTER TABLE profiles                ENABLE ROW LEVEL SECURITY;
+ALTER TABLE project_series         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE posts                   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE votes                   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments                ENABLE ROW LEVEL SECURITY;
@@ -544,6 +561,12 @@ ALTER TABLE investor_bookmarks      ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Profiles are public"        ON profiles FOR SELECT USING (TRUE);
 CREATE POLICY "Users manage own profile"   ON profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Trigger inserts profile"    ON profiles FOR INSERT WITH CHECK (TRUE);
+
+-- ── PROJECT SERIES ───────────────────────────────────────────────────────────
+CREATE POLICY "Project series are public"    ON project_series FOR SELECT USING (TRUE);
+CREATE POLICY "Builders create own project series" ON project_series FOR INSERT WITH CHECK (auth.uid() = author_id);
+CREATE POLICY "Authors update own project series" ON project_series FOR UPDATE USING (auth.uid() = author_id) WITH CHECK (auth.uid() = author_id);
+CREATE POLICY "Authors delete own project series" ON project_series FOR DELETE USING (auth.uid() = author_id);
 
 -- ── POSTS ─────────────────────────────────────────────────────────────────────
 CREATE POLICY "Posts are public"           ON posts FOR SELECT USING (TRUE);
