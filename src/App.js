@@ -608,6 +608,17 @@ const AppShell = ({navigate,activePage,children,returnTo,userRole})=>{
           .vibr-feed-primary > div:nth-child(2){padding:0 12px!important;max-width:100%;overflow-x:auto!important}
           .vibr-feed-primary > div:nth-child(2) button{flex:0 0 auto!important;padding:10px 12px!important}
         }
+        @media(max-width:900px){
+          .vibr-collab-card{grid-template-columns:minmax(0,1fr)!important;width:100%!important;min-width:0!important;padding:16px!important;gap:14px!important;overflow:hidden!important}
+          .vibr-collab-card > div:first-child{min-width:0!important;width:100%!important}
+          .vibr-collab-card > div:first-child > div:first-child{flex-wrap:wrap!important;min-width:0!important}
+          .vibr-collab-card > div:first-child > div:first-child > div{min-width:0!important}
+          .vibr-collab-actions{width:100%!important;min-width:0!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+          .vibr-collab-actions > button:first-child{grid-column:1/-1!important;width:100%!important;min-width:0!important}
+          .vibr-collab-actions > button:nth-child(2){width:100%!important;min-width:0!important}
+          .vibr-collab-actions > button:nth-child(3){width:100%!important;min-width:0!important}
+          .vibr-collab-card > div[style*="grid-column"]{min-width:0!important;width:100%!important}
+        }
         .vibr-mobile-header{display:none}
         .vibr-mobile-scrim{display:none}
         .vibr-bottom-dock{display:none}
@@ -1666,7 +1677,7 @@ function CollabsPage({navigate,returnTo,userRole,session}){
         {displayCollabs.length===0&&!liveCollabs.length&&(
           <EmptyState emoji="🤝" title="NO COLLABS YET" sub="No collab requests yet. Post yours and find a co-builder." cta="Post Collab Request" onCta={()=>navigate("drop")}/>
         )}
-        {displayCollabs.map((c,i)=><div key={c.id} style={{background:"var(--surface)",border:"2px solid var(--border)",padding:22,display:"grid",gridTemplateColumns:"1fr auto",gap:18,transition:"all .2s",animation:`fadeUp .4s ${i*.08}s ease both`}} onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--gold)";e.currentTarget.style.transform="translateX(-3px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="none";}}>
+        {displayCollabs.map((c,i)=><div key={c.id} className="vibr-collab-card" style={{background:"var(--surface)",border:"2px solid var(--border)",padding:22,display:"grid",gridTemplateColumns:"minmax(0,1fr) 124px",gap:18,transition:"all .2s",animation:`fadeUp .4s ${i*.08}s ease both`}} onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--gold)";e.currentTarget.style.transform="translateX(-3px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="none";}}>
           <div>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:11}}>
               <Av name={c.av} color={c.avc} size={36}/>
@@ -1678,7 +1689,7 @@ function CollabsPage({navigate,returnTo,userRole,session}){
             <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:11}}>{c.tags.map(([t,col])=><Tag key={t} label={t} color={col}/>)}</div>
             <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}><span style={{fontFamily:"var(--fm)",fontSize:8,color:"var(--muted)",letterSpacing:2}}>NEEDS:</span>{c.needs.map(n=><span key={n} style={{padding:"2px 9px",background:"var(--s2)",border:"1px solid var(--green)",color:"var(--gr2)",fontFamily:"var(--fm)",fontSize:8,letterSpacing:1}}>{n}</span>)}</div>
           </div>
-          <div style={{display:"flex",flexDirection:"column",gap:7,justifyContent:"center",minWidth:124}}>
+          <div className="vibr-collab-actions" style={{display:"flex",flexDirection:"column",gap:7,justifyContent:"center",minWidth:0}}>
             {requested[c.id]?(
               <button style={{padding:"9px 12px",background:"var(--green)",color:"#fff",border:"2px solid var(--green)",fontFamily:"var(--fd)",fontSize:14,letterSpacing:2,cursor:"default",display:"flex",alignItems:"center",gap:5}}>✓ Requested!</button>
             ):(
