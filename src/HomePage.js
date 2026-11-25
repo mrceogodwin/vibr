@@ -146,15 +146,6 @@ function Brand({ onClick }) {
   );
 }
 
-function AfricaMark() {
-  return (
-    <svg className="vh-africa" viewBox="0 0 80 100" aria-hidden="true">
-      <path d="M28 10 L40 6 L52 8 L58 14 L54 22 L62 28 L68 36 L58 40 L56 50 L52 62 L46 74 L40 86 L34 90 L28 82 L24 70 L20 58 L14 50 L10 42 L14 32 L18 22 L24 14 Z" />
-      <path d="M60 68 L66 70 L68 80 L64 86 L58 82 L58 74 Z" />
-    </svg>
-  );
-}
-
 function TickerLine() {
   return (
     <p className="vh-ticker-line">
@@ -190,7 +181,6 @@ function HeroArt() {
         <span><i>&gt;</i> <b>vibe()</b></span>
         <span><i>&gt;</i> africa.connect()</span>
       </pre>
-      <AfricaMark />
       <p className="vh-photo-credit">Photo by Konteh Graphics on Pexels.</p>
     </div>
   );
