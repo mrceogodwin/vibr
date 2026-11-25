@@ -7,14 +7,15 @@
   --green-hot: #3dce73;
   --muted: #3a372f;
   --display: "Anton", "Arial Narrow", Impact, sans-serif;
+  --poster: "Archivo Black", "Arial Black", "Arial Narrow", sans-serif;
   --cond: "Bebas Neue", "Arial Narrow", Impact, sans-serif;
   --body: "DM Sans", "Helvetica Neue", Arial, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
-  --stripe: 36px;
+  --stripe: 34px;
   min-height: 100vh;
-  background-color: var(--paper);
-  background-image: radial-gradient(rgba(28, 22, 12, 0.045) 0.55px, transparent 0.7px);
-  background-size: 3px 3px;
+  display: flex;
+  flex-direction: column;
+  background: #0c0c0c;
   color: var(--ink);
   font-family: var(--body);
   letter-spacing: 0;
@@ -66,14 +67,28 @@ body:has(.vh) {
 .vh-header {
   position: relative;
   z-index: 30;
-  height: 72px;
+  height: 68px;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 18px;
   padding: 0 clamp(16px, 2.2vw, 34px);
   border-bottom: 2px solid var(--ink);
-  background: transparent;
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(28, 22, 12, 0.045) 0.55px, transparent 0.7px);
+  background-size: 3px 3px;
+}
+
+.vh-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.vh-brand-rule {
+  width: 1px;
+  height: 32px;
+  background: var(--ink);
 }
 
 .vh-logo {
@@ -142,19 +157,21 @@ body:has(.vh) {
 
 .vh-login,
 .vh-join {
-  height: 42px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 16px;
+  padding: 0 18px;
   border: 2px solid var(--ink);
   background: transparent;
   font-family: var(--cond);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   white-space: nowrap;
 }
+
+.vh-join { min-width: 132px; padding: 0 16px; }
 
 .vh-login { color: var(--ink); }
 .vh-login:hover { background: var(--ink); color: var(--paper); }
@@ -192,7 +209,7 @@ body:has(.vh) {
 
 .vh-hero {
   display: grid;
-  grid-template-columns: minmax(300px, 37%) minmax(0, 1fr);
+  grid-template-columns: minmax(300px, 36%) minmax(0, 1fr);
   align-items: stretch;
   border-bottom: 2px solid var(--ink);
 }
@@ -204,6 +221,9 @@ body:has(.vh) {
   flex-direction: column;
   align-items: flex-start;
   padding: 26px clamp(16px, 2.2vw, 34px) 18px;
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(28, 22, 12, 0.045) 0.55px, transparent 0.7px);
+  background-size: 3px 3px;
 }
 
 .vh-kicker {
@@ -235,11 +255,12 @@ body:has(.vh) {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  font-family: var(--display);
-  font-size: clamp(78px, 42cqi, 168px);
+  max-width: 100%;
+  font-family: var(--poster);
+  font-size: clamp(46px, 5.4vw, 82px);
   font-weight: 400;
-  line-height: 0.78;
-  letter-spacing: 0.005em;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
 }
 
 .vh-hero h1 span { display: block; }
@@ -367,21 +388,25 @@ body:has(.vh) {
 .vh-rain {
   position: absolute;
   z-index: 2;
-  inset: 0;
+  inset: 0 0 38% 18%;
   display: flex;
   justify-content: space-between;
-  padding: 0 6% 0 28%;
+  gap: 0;
+  padding: 8px 1% 0;
   overflow: hidden;
-  color: rgba(92, 220, 130, 0.85);
+  color: #3ee07a;
   font-family: var(--mono);
-  font-size: 12px;
-  line-height: 1.2;
+  font-size: 11px;
+  line-height: 1.02;
   font-weight: 500;
   pointer-events: none;
   user-select: none;
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.55) 28%, transparent 58%);
-  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.55) 28%, transparent 58%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 62%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 62%, transparent 100%);
 }
+
+.vh-rain span:nth-child(3n) { color: #86ffb4; }
+.vh-rain span:nth-child(4n) { opacity: 0.72; }
 
 .vh-rain span {
   white-space: pre;
@@ -391,15 +416,15 @@ body:has(.vh) {
 .vh-term {
   position: absolute;
   z-index: 4;
-  top: 16px;
-  left: 16px;
+  top: 14px;
+  left: 14px;
   margin: 0;
   padding: 0;
-  color: #b6ffc8;
+  color: #d9ffe6;
   font-family: var(--mono);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.45;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.55;
   letter-spacing: 0;
   text-shadow: none;
   pointer-events: none;
@@ -413,14 +438,20 @@ body:has(.vh) {
   position: absolute;
   z-index: 4;
   top: 12px;
-  right: 14px;
-  width: min(22%, 148px);
+  right: 16px;
+  width: min(30%, 196px);
   height: auto;
   overflow: visible;
   pointer-events: none;
 }
 
-.vh-africa circle { fill: #3dce73; }
+.vh-africa path {
+  fill: none;
+  stroke: #3dff7a;
+  stroke-width: 2.1;
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
+}
 
 .vh-photo-credit {
   position: absolute;
@@ -437,8 +468,15 @@ body:has(.vh) {
 .vh-flag {
   width: var(--stripe);
   flex: none;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
+}
+
+.vh-flag span {
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .vh-flag span:nth-child(1) { background: var(--red); }
@@ -448,9 +486,9 @@ body:has(.vh) {
 .vh-feed {
   position: absolute;
   z-index: 5;
-  left: 14px;
-  right: 14px;
-  bottom: 12px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -493,7 +531,7 @@ body:has(.vh) {
 
 .vh-feed-grid {
   display: grid;
-  grid-template-columns: repeat(var(--vh-cols, 3), minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .vh-card {
@@ -635,6 +673,89 @@ body:has(.vh) {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border-bottom: 2px solid var(--ink);
+  background-color: var(--paper);
+  background-image: radial-gradient(rgba(28, 22, 12, 0.045) 0.55px, transparent 0.7px);
+  background-size: 3px 3px;
+}
+
+.vh-footer {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 28px clamp(18px, 3vw, 40px) 18px;
+  background: #0c0c0c;
+  color: #fff;
+}
+
+.vh-footer-main {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.vh-footer-brand {
+  max-width: 320px;
+}
+
+.vh-footer .vh-logo {
+  font-size: 36px;
+}
+
+.vh-footer .vh-logo-v,
+.vh-footer .vh-logo-r { color: #fff; }
+
+.vh-footer-brand p {
+  margin: 8px 0 0;
+  color: #c8c4ba;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.vh-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  justify-content: center;
+}
+
+.vh-footer-links button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #f3efe6;
+  font-family: var(--cond);
+  font-size: 16px;
+  letter-spacing: 0.12em;
+}
+
+.vh-footer-links button:hover { color: var(--gold); }
+
+.vh-footer-join {
+  height: 40px;
+  flex: none;
+  padding: 0 18px;
+  border: 2px solid var(--gold);
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--cond);
+  font-size: 16px;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.vh-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid #2a2a2a;
+  color: #9a968c;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
 }
 
 .vh-feature {
@@ -771,7 +892,7 @@ body:has(.vh) {
 @media (max-width: 860px) {
   .vh-hero { display: flex; flex-direction: column; }
   .vh-hero-copy { padding: 28px 28px 22px; }
-  .vh-hero h1 { font-size: clamp(84px, 12vw, 148px); }
+  .vh-hero h1 { font-size: clamp(48px, 8vw, 78px); line-height: 0.92; }
   .vh-kicker { font-size: 14px; }
   .vh-lede { max-width: 42ch; font-size: 17px; }
   .vh-hero-actions { max-width: 560px; }
@@ -810,6 +931,9 @@ body:has(.vh) {
     padding: 20px 18px;
   }
   .vh-feature:last-child { border-bottom: 0; }
+  .vh-footer-main { align-items: flex-start; flex-direction: column; }
+  .vh-footer-links { justify-content: flex-start; }
+  .vh-footer-bottom { flex-direction: column; }
 }
 
 @media (max-width: 460px) {
@@ -833,7 +957,7 @@ body:has(.vh) {
     letter-spacing: 0.06em;
     white-space: normal;
   }
-  .vh-hero h1 { font-size: clamp(64px, 19vw, 92px); line-height: 0.8; }
+  .vh-hero h1 { font-size: clamp(42px, 11vw, 64px); line-height: 0.92; }
   .vh-lede { margin-top: 10px; font-size: 15px; }
   .vh-hero-actions { gap: 8px; margin-top: 16px; }
   .vh-btn { min-height: 46px; font-size: 16px; letter-spacing: 0.06em; }

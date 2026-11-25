@@ -69,8 +69,6 @@ const HERO_SRC = "/home/hero-2400.webp";
 const HERO_SRCSET = "/home/hero-1200.webp 1200w, /home/hero-1600.webp 1600w, /home/hero-2400.webp 2400w, /home/hero-3200.webp 3200w";
 const HERO_SIZES = "(max-width: 1120px) 100vw, 64vw";
 
-const AFRICA_DOTS = "47,7 52,7 57,7 62,7 67,7 37,12 42,12 47,12 52,12 57,12 62,12 67,12 72,12 77,12 32,17 37,17 42,17 47,17 52,17 57,17 62,17 67,17 72,17 77,17 82,17 27,22 32,22 37,22 42,22 47,22 52,22 57,22 62,22 67,22 72,22 77,22 82,22 27,27 32,27 37,27 42,27 47,27 52,27 57,27 62,27 67,27 72,27 77,27 82,27 27,32 32,32 37,32 42,32 47,32 52,32 57,32 62,32 67,32 72,32 77,32 82,32 22,37 27,37 32,37 37,37 42,37 47,37 52,37 57,37 62,37 67,37 72,37 77,37 82,37 87,37 17,42 22,42 27,42 32,42 37,42 42,42 47,42 52,42 57,42 62,42 67,42 72,42 77,42 82,42 87,42 92,42 17,47 22,47 27,47 32,47 37,47 42,47 47,47 52,47 57,47 62,47 67,47 72,47 77,47 82,47 87,47 92,47 17,52 22,52 27,52 32,52 37,52 42,52 47,52 52,52 57,52 62,52 67,52 72,52 77,52 82,52 87,52 12,57 17,57 22,57 27,57 32,57 37,57 42,57 47,57 52,57 57,57 62,57 67,57 72,57 77,57 17,62 22,62 27,62 32,62 37,62 42,62 47,62 52,62 57,62 62,62 67,62 72,62 77,62 82,62 17,67 22,67 27,67 32,67 37,67 42,67 47,67 52,67 57,67 62,67 67,67 72,67 77,67 82,67 17,72 22,72 27,72 32,72 37,72 42,72 47,72 52,72 57,72 62,72 67,72 72,72 77,72 82,72 22,77 27,77 32,77 37,77 42,77 47,77 52,77 57,77 62,77 67,77 72,77 77,77 27,82 32,82 37,82 42,82 47,82 52,82 57,82 62,82 67,82 72,82 77,82 27,87 32,87 37,87 42,87 47,87 52,87 57,87 62,87 67,87 72,87 32,92 37,92 42,92 47,92 52,92 57,92 62,92 67,92 72,92 102,92 37,97 42,97 47,97 52,97 57,97 62,97 67,97 97,97 102,97 107,97 37,102 42,102 47,102 52,102 57,102 62,102 67,102 97,102 102,102 107,102 37,107 42,107 47,107 52,107 57,107 62,107 97,107 102,107 107,107 37,112 42,112 47,112 52,112 57,112 62,112 102,112 42,117 47,117 52,117 57,117 42,122 47,122 52,122 57,122 47,127 52,127".split(" ").map((pair) => pair.split(",").map(Number));
-
 function makeRain(columns, rows) {
   const lines = [];
   for (let column = 0; column < columns; column += 1) {
@@ -85,7 +83,25 @@ function makeRain(columns, rows) {
   return lines;
 }
 
-const RAIN = makeRain(14, 32);
+const RAIN = makeRain(26, 30);
+
+function isCompletePost(card) {
+  if (!card) return false;
+  if (/vibr builder/i.test(card.name)) return false;
+  if (!card.pitch || card.pitch.length < 28) return false;
+  if (/new project from the vibr/i.test(card.pitch)) return false;
+  return card.tags.length >= 2;
+}
+
+function showcaseCards(rows) {
+  const ready = (Array.isArray(rows) ? rows : [])
+    .slice(0, 3)
+    .map(toCard)
+    .filter(isCompletePost);
+  const used = new Set(ready.map((card) => card.name.toLowerCase()));
+  const fillers = DEMO_CARDS.filter((card) => !used.has(card.name.toLowerCase()));
+  return [...ready, ...fillers].slice(0, 3);
+}
 
 function normalizeTags(tags) {
   if (!tags) return [];
@@ -130,6 +146,15 @@ function Brand({ onClick }) {
   );
 }
 
+function AfricaMark() {
+  return (
+    <svg className="vh-africa" viewBox="0 0 80 100" aria-hidden="true">
+      <path d="M28 10 L40 6 L52 8 L58 14 L54 22 L62 28 L68 36 L58 40 L56 50 L52 62 L46 74 L40 86 L34 90 L28 82 L24 70 L20 58 L14 50 L10 42 L14 32 L18 22 L24 14 Z" />
+      <path d="M60 68 L66 70 L68 80 L64 86 L58 82 L58 74 Z" />
+    </svg>
+  );
+}
+
 function TickerLine() {
   return (
     <p className="vh-ticker-line">
@@ -165,9 +190,7 @@ function HeroArt() {
         <span><i>&gt;</i> <b>vibe()</b></span>
         <span><i>&gt;</i> africa.connect()</span>
       </pre>
-      <svg className="vh-africa" viewBox="0 0 120 140" aria-hidden="true">
-        {AFRICA_DOTS.map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.35" />)}
-      </svg>
+      <AfricaMark />
       <p className="vh-photo-credit">Photo by Konteh Graphics on Pexels.</p>
     </div>
   );
@@ -211,8 +234,7 @@ export default function LandingPage({ navigate, getPosts }) {
     getPosts({ limit: 3, offset: 0 })
       .then((rows) => {
         if (!active) return;
-        const next = (Array.isArray(rows) ? rows : []).slice(0, 3).map(toCard).filter(Boolean);
-        if (next.length) setCards(next);
+        setCards(showcaseCards(rows));
       })
       .catch(() => {});
     return () => { active = false; };
@@ -230,7 +252,10 @@ export default function LandingPage({ navigate, getPosts }) {
   return (
     <div className="vh">
       <header className="vh-header">
-        <Brand onClick={() => go("landing")} />
+        <div className="vh-brand">
+          <Brand onClick={() => go("landing")} />
+          <span className="vh-brand-rule" aria-hidden="true" />
+        </div>
         <nav
           id="vh-nav"
           className={menuOpen ? "vh-nav is-open" : "vh-nav"}
@@ -296,7 +321,7 @@ export default function LandingPage({ navigate, getPosts }) {
                   <span>LIVE FEED</span>
                   <span className="vh-caret" aria-hidden="true" />
                 </div>
-                <div className="vh-feed-grid" style={{ "--vh-cols": cards.length }} aria-live="polite">
+                <div className="vh-feed-grid" aria-live="polite">
                   {cards.map((card) => (
                     <FeedCard key={card.id} card={card} onOpen={() => go("feed")} />
                   ))}
@@ -336,6 +361,27 @@ export default function LandingPage({ navigate, getPosts }) {
           ))}
         </section>
       </main>
+      <footer className="vh-footer">
+        <div className="vh-footer-main">
+          <div className="vh-footer-brand">
+            <Brand onClick={() => go("landing")} />
+            <p>The network for Africa's next generation of builders.</p>
+          </div>
+          <nav className="vh-footer-links" aria-label="Footer">
+            <button type="button" onClick={() => go("feed")}>Feed</button>
+            <button type="button" onClick={() => go("collabs")}>Collabs</button>
+            <button type="button" onClick={() => go("bounties")}>Bounties</button>
+            <button type="button" onClick={() => go("hackathons")}>Hackathons</button>
+            <button type="button" onClick={() => go("community")}>Community</button>
+            <button type="button" onClick={() => go("leaderboard")}>Leaderboard</button>
+          </nav>
+          <button type="button" className="vh-footer-join" onClick={() => go("account-signup")}>JOIN VIBR</button>
+        </div>
+        <div className="vh-footer-bottom">
+          <span>© 2026 VIBR</span>
+          <span>54 COUNTRIES · ONE HUB</span>
+        </div>
+      </footer>
     </div>
   );
 }
